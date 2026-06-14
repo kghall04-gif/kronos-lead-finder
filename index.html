@@ -18,17 +18,18 @@
     --red-dim: rgba(255,59,59,0.1);
     --green: #00E07A;
     --green-dim: rgba(0,224,122,0.1);
+    --orange: #FF9500;
     --star: #FFB800;
     --text: #E8F0F8;
     --muted: #6B8099;
   }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 15px; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
-  /* Header */
+  /* ── Header ── */
   .header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
+    padding: 12px 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -38,284 +39,240 @@
     top: 0;
     z-index: 100;
   }
-  .logo { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--accent); }
+  .logo { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 800; color: var(--accent); white-space: nowrap; }
   .logo span { color: var(--text); }
-  .header-right { display: flex; align-items: center; gap: 20px; }
-  .stats { display: flex; gap: 20px; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .stats { display: flex; gap: 18px; }
   .stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-  .stat-num { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 21px; font-weight: 700; color: var(--accent); line-height: 1; }
   .stat-num.red { color: var(--red); }
   .stat-num.green { color: var(--green); }
-  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .settings-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 8px;
-    width: 34px;
-    height: 34px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .icon-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
   }
-  .settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Search */
-  .search-area { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 24px; }
-  .search-row { display: flex; gap: 10px; max-width: 860px; margin-bottom: 12px; flex-wrap: wrap; }
+  /* ── Search ── */
+  .search-area { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 22px; }
+  .search-row { display: flex; gap: 8px; max-width: 900px; margin-bottom: 11px; flex-wrap: wrap; }
   .search-input {
-    flex: 1;
-    min-width: 140px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    padding: 10px 14px;
-    outline: none;
-    transition: border-color 0.2s;
+    flex: 1; min-width: 130px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 9px 13px;
+    outline: none; transition: border-color 0.2s;
   }
   .search-input:focus { border-color: var(--accent); }
   .search-input::placeholder { color: var(--muted); }
   .search-btn {
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 24px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.2s;
+    background: var(--accent); color: #000; border: none; border-radius: 10px;
+    padding: 9px 22px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: opacity 0.2s;
   }
   .search-btn:hover { opacity: 0.85; }
   .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .quick-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 7px; }
   .quick-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 20px;
-    padding: 5px 13px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 18px; padding: 5px 12px; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
   .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-  /* Filters */
-  .filters-bar { padding: 12px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); }
-  .filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }
+  /* ── Toolbar ── */
+  .toolbar {
+    padding: 10px 22px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
   .filter-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 6px;
-    padding: 5px 13px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: all 0.15s;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 6px; padding: 5px 12px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
   .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
   .filter-btn:hover:not(.active) { border-color: #3a5070; color: var(--text); }
+  .toolbar-sep { flex: 1; }
+  .tool-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 7px; padding: 5px 12px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+  }
+  .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .tool-btn.danger:hover { border-color: var(--red); color: var(--red); }
 
-  /* Loading */
-  .loading { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 60px 24px; text-align: center; }
+  /* ── Loading ── */
+  .loading { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 56px 22px; text-align: center; }
   .loading.show { display: flex; }
-  .spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { color: var(--muted); font-size: 14px; }
+  .loading-text { color: var(--muted); font-size: 13px; }
 
-  /* Empty */
-  .empty-state { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 60px 24px; text-align: center; color: var(--muted); }
+  /* ── Empty ── */
+  .empty-state { display: none; flex-direction: column; align-items: center; gap: 10px; padding: 56px 22px; text-align: center; color: var(--muted); }
   .empty-state.show { display: flex; }
-  .empty-icon { font-size: 38px; }
-  .empty-title { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--text); }
+  .empty-icon { font-size: 36px; }
+  .empty-title { font-family: 'Syne', sans-serif; font-size: 17px; color: var(--text); }
 
-  /* Results */
-  .results-area { padding: 16px 24px 48px; }
-  .results-info { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
-  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  /* ── Results ── */
+  .results-area { padding: 14px 22px 40px; }
+  .results-info { font-size: 12px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
 
-  /* Cards */
+  /* ── Load More ── */
+  .load-more-row { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+  .load-more-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 10px; padding: 10px 28px; font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+  .load-more-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .load-more-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ── Cards ── */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    transition: border-color 0.2s;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+    padding: 14px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s;
   }
   .card:hover { border-color: #2a3f58; }
   .card.hot { border-color: rgba(255,59,59,0.3); background: linear-gradient(135deg, var(--surface), rgba(255,59,59,0.03)); }
   .card.hot:hover { border-color: rgba(255,59,59,0.55); }
-  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-  .card-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; flex: 1; }
-  .badge { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 3px 7px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.3px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+  .card-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; flex: 1; }
+  .badge { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0; }
   .badge-hot { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,59,59,0.25); }
   .badge-web { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,224,122,0.2); }
-  .card-address { font-size: 12px; color: var(--muted); line-height: 1.4; }
-  .card-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .rating { display: flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 600; color: var(--star); }
+
+  /* Lead score */
+  .score-row { display: flex; align-items: center; gap: 6px; }
+  .score-badge {
+    font-size: 10px; font-weight: 700; border-radius: 5px; padding: 2px 7px;
+    white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .score-A { background: rgba(255,59,59,0.15); color: #FF5555; border: 1px solid rgba(255,59,59,0.3); }
+  .score-B { background: rgba(255,149,0,0.12); color: var(--orange); border: 1px solid rgba(255,149,0,0.25); }
+  .score-C { background: rgba(255,184,0,0.1); color: var(--star); border: 1px solid rgba(255,184,0,0.2); }
+  .score-D { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+  .card-address { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .card-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .rating { display: flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--star); }
+  .review-count { font-size: 11px; color: var(--muted); }
   .phone-text { font-size: 12px; color: var(--muted); }
-  .no-phone { font-size: 11px; color: #3a5070; }
-  .card-website { font-size: 12px; color: var(--accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; display: inline-block; }
+  .no-phone { font-size: 11px; color: #2a3f58; }
+  .card-website { font-size: 11px; color: var(--accent); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; display: inline-block; }
   .card-website:hover { text-decoration: underline; }
-  .card-email-row { display: flex; align-items: center; gap: 8px; min-height: 22px; }
-  .email-found { font-size: 12px; color: var(--green); }
-  .email-none { font-size: 12px; color: #3a5070; }
+
+  /* Email row */
+  .card-email-row { display: flex; align-items: center; gap: 7px; min-height: 20px; flex-wrap: wrap; }
+  .email-found { font-size: 11px; color: var(--green); }
+  .email-source { font-size: 10px; color: var(--muted); background: var(--surface2); border-radius: 4px; padding: 1px 5px; }
+  .email-none { font-size: 11px; color: #2a3f58; }
   .email-find-btn {
-    font-size: 11px;
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 5px;
-    padding: 3px 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 5px; padding: 2px 8px; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
   }
   .email-find-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .email-find-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .card-actions { display: flex; gap: 7px; margin-top: 2px; }
+  .email-find-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Status */
+  .status-row { display: flex; align-items: center; gap: 6px; }
+  .status-label { font-size: 10px; color: var(--muted); }
+  .status-select {
+    background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 5px; font-size: 11px; font-family: 'DM Sans', sans-serif;
+    padding: 2px 6px; outline: none; cursor: pointer; transition: border-color 0.15s;
+  }
+  .status-select:focus { border-color: var(--accent); }
+  .status-select.s-new { color: var(--muted); }
+  .status-select.s-called { color: var(--accent); border-color: rgba(0,212,255,0.3); }
+  .status-select.s-demo { color: var(--star); border-color: rgba(255,184,0,0.3); }
+  .status-select.s-won { color: var(--green); border-color: rgba(0,224,122,0.3); }
+  .status-select.s-lost { color: #3a5070; border-color: #1E2D40; }
+
+  /* Actions */
+  .card-actions { display: flex; gap: 6px; margin-top: 2px; }
   .action-btn {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 8px;
-    padding: 8px 4px;
-    font-size: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    transition: all 0.15s;
+    flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 7px; padding: 7px 3px; font-size: 11px; font-family: 'DM Sans', sans-serif;
+    font-weight: 500; cursor: pointer; text-align: center; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 3px; transition: all 0.15s;
   }
   .action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-  .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .action-btn:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
   .add-btn:hover { border-color: var(--green) !important; color: var(--green) !important; background: var(--green-dim) !important; }
+  .wa-btn:hover { border-color: #25D366 !important; color: #25D366 !important; background: rgba(37,211,102,0.08) !important; }
 
-  /* Modals shared */
+  /* ── Modals ── */
   .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.76);
+    z-index: 200; align-items: center; justify-content: center; padding: 16px;
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 26px;
-    width: 100%;
-    max-width: 460px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    max-height: 90vh;
-    overflow-y: auto;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 15px;
+    padding: 24px; width: 100%; max-width: 460px; display: flex; flex-direction: column;
+    gap: 13px; max-height: 92vh; overflow-y: auto;
   }
-  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
-  .modal-sub { font-size: 13px; color: var(--muted); margin-top: -6px; }
-  .form-row { display: flex; flex-direction: column; gap: 5px; }
-  .form-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; }
+  .modal-sub { font-size: 12px; color: var(--muted); margin-top: -5px; }
+  .form-row { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
   .form-input, .form-select {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    padding: 9px 12px;
-    outline: none;
-    width: 100%;
-    transition: border-color 0.2s;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+    padding: 9px 11px; outline: none; width: 100%; transition: border-color 0.2s;
   }
   .form-input:focus, .form-select:focus { border-color: var(--accent); }
   .form-select option { background: var(--surface); }
   .colour-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .colour-chip { width: 30px; height: 30px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border-color 0.15s; }
+  .colour-chip { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border-color 0.15s; }
   .colour-chip.selected { border-color: #fff; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 2px; }
   .modal-cancel {
-    flex: 1;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 10px;
-    padding: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
+    flex: 1; background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 9px; padding: 9px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
   }
   .modal-cancel:hover { border-color: #3a5070; color: var(--text); }
   .modal-confirm {
-    flex: 2;
-    background: var(--accent);
-    border: none;
-    color: #000;
-    border-radius: 10px;
-    padding: 10px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s;
+    flex: 2; background: var(--accent); border: none; color: #000;
+    border-radius: 9px; padding: 9px; font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
   }
   .modal-confirm:hover { opacity: 0.85; }
-  .sheets-status {
-    font-size: 12px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    text-align: center;
+  .sheets-status-box {
+    font-size: 12px; padding: 8px 11px; border-radius: 7px; text-align: center;
   }
-  .sheets-status.ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,224,122,0.2); }
-  .sheets-status.warn { background: rgba(255,184,0,0.1); color: var(--star); border: 1px solid rgba(255,184,0,0.2); }
+  .sheets-ok { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,224,122,0.2); }
+  .sheets-warn { background: rgba(255,184,0,0.08); color: var(--star); border: 1px solid rgba(255,184,0,0.2); }
+  .code-block {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+    padding: 10px; font-family: monospace; font-size: 10px; color: #7aa2c8;
+    white-space: pre-wrap; overflow-x: auto; max-height: 140px; overflow-y: auto;
+  }
+  .how-to { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--muted); line-height: 1.65; }
+  .how-to strong { color: var(--text); }
 
-  /* Toast */
+  /* ── Toast ── */
   .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    padding: 11px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    z-index: 300;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: all 0.3s;
-    pointer-events: none;
-    max-width: 300px;
+    position: fixed; bottom: 22px; right: 22px; padding: 10px 16px; border-radius: 9px;
+    font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transform: translateY(8px);
+    transition: all 0.3s; pointer-events: none; max-width: 280px;
   }
   .toast.show { opacity: 1; transform: translateY(0); }
 
   @media (max-width: 600px) {
-    .header, .search-area, .filters-bar, .results-area { padding-left: 14px; padding-right: 14px; }
+    .header, .search-area, .toolbar, .results-area { padding-left: 13px; padding-right: 13px; }
+    .stats { gap: 14px; }
   }
 </style>
 </head>
@@ -326,28 +283,20 @@
   <div class="logo">Kronos <span>Lead Finder</span></div>
   <div class="header-right">
     <div class="stats">
-      <div class="stat">
-        <div class="stat-num" id="stat-total">0</div>
-        <div class="stat-label">Total Found</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num red" id="stat-nosite">0</div>
-        <div class="stat-label">No Website</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num green" id="stat-added">0</div>
-        <div class="stat-label">Added</div>
-      </div>
+      <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-num red" id="stat-nosite">0</div><div class="stat-label">No Site</div></div>
+      <div class="stat"><div class="stat-num" id="stat-emails" style="color:#A855F7;">0</div><div class="stat-label">Emails</div></div>
+      <div class="stat"><div class="stat-num green" id="stat-added">0</div><div class="stat-label">Added</div></div>
     </div>
-    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 </header>
 
 <!-- Search -->
 <div class="search-area">
   <div class="search-row">
-    <input class="search-input" id="inp-industry" type="text" placeholder="Industry (e.g. Plumber, Electrician…)" />
-    <input class="search-input" id="inp-location" type="text" placeholder="Location" value="Hamilton" style="max-width:180px;" />
+    <input class="search-input" id="inp-industry" type="text" placeholder="Industry (e.g. Plumber, Barber…)" />
+    <input class="search-input" id="inp-location" type="text" placeholder="Location" value="Hamilton" style="max-width:160px;" />
     <button class="search-btn" id="search-btn" onclick="doSearch()">Search</button>
   </div>
   <div class="quick-btns">
@@ -362,12 +311,19 @@
   </div>
 </div>
 
-<!-- Filters -->
-<div class="filters-bar">
+<!-- Toolbar -->
+<div class="toolbar">
   <span class="filter-label">Filter:</span>
   <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
-  <button class="filter-btn" data-filter="nosite" onclick="setFilter('nosite')">🔥 No Website Only</button>
+  <button class="filter-btn" data-filter="nosite" onclick="setFilter('nosite')">🔥 No Website</button>
   <button class="filter-btn" data-filter="stars" onclick="setFilter('stars')">⭐ 4+ Stars</button>
+  <button class="filter-btn" data-filter="A" onclick="setFilter('A')">🎯 Grade A</button>
+  <button class="filter-btn" data-filter="called" onclick="setFilter('called')">📞 Called</button>
+  <button class="filter-btn" data-filter="won" onclick="setFilter('won')">✅ Won</button>
+  <div class="toolbar-sep"></div>
+  <button class="tool-btn" id="shuffle-btn" onclick="shuffleResults()" disabled>🔀 Shuffle</button>
+  <button class="tool-btn" id="bulk-email-btn" onclick="bulkFindEmails()" disabled>📧 Find All Emails</button>
+  <button class="tool-btn" id="export-btn" onclick="exportCSV()" disabled>⬇ Export CSV</button>
 </div>
 
 <!-- Loading -->
@@ -384,27 +340,28 @@
 </div>
 
 <!-- Results -->
-<div class="results-area">
-  <div class="results-info" id="results-info" style="display:none;"></div>
+<div class="results-area" id="results-area" style="display:none;">
+  <div class="results-info">
+    <span id="results-info-text"></span>
+  </div>
   <div class="results-grid" id="results-grid"></div>
+  <div class="load-more-row" id="load-more-row" style="display:none;">
+    <button class="load-more-btn" id="load-more-btn" onclick="loadMore()">Load More Results →</button>
+  </div>
 </div>
 
 <!-- Add Modal -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
-    <div>
-      <div class="modal-title">Add to Sheet</div>
-      <div class="modal-sub" id="m-sheets-status-text"></div>
-    </div>
+    <div><div class="modal-title">➕ Add to Sheet</div><div class="modal-sub" id="m-sub"></div></div>
+    <div class="form-row"><label class="form-label">Business Name</label><input class="form-input" id="m-name" type="text" /></div>
     <div class="form-row">
-      <label class="form-label">Business Name</label>
-      <input class="form-input" id="m-name" type="text" />
-    </div>
-    <div class="form-row">
-      <label class="form-label">Industry Type</label>
+      <label class="form-label">Industry</label>
       <select class="form-select" id="m-industry">
         <option value="plumber">Plumber</option>
         <option value="electrician">Electrician</option>
+        <option value="painter">Painter</option>
+        <option value="builder">Builder</option>
         <option value="trades">Trades</option>
         <option value="auto">Auto / Mechanic</option>
         <option value="barber">Barber</option>
@@ -412,23 +369,12 @@
         <option value="salon">Salon</option>
         <option value="gym">Gym</option>
         <option value="restaurant">Restaurant</option>
-        <option value="painter">Painter</option>
-        <option value="builder">Builder</option>
         <option value="other">Other</option>
       </select>
     </div>
-    <div class="form-row">
-      <label class="form-label">Phone</label>
-      <input class="form-input" id="m-phone" type="tel" />
-    </div>
-    <div class="form-row">
-      <label class="form-label">Email</label>
-      <input class="form-input" id="m-email" type="email" placeholder="Leave blank if unknown" />
-    </div>
-    <div class="form-row">
-      <label class="form-label">Address</label>
-      <input class="form-input" id="m-address" type="text" />
-    </div>
+    <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="m-phone" type="tel" /></div>
+    <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="m-email" type="email" placeholder="Leave blank if unknown" /></div>
+    <div class="form-row"><label class="form-label">Address</label><input class="form-input" id="m-address" /></div>
     <div class="form-row">
       <label class="form-label">Colour Tag</label>
       <div class="colour-row" id="colour-row">
@@ -443,7 +389,7 @@
     <div id="m-sheets-badge"></div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal('modal-add')">Cancel</button>
-      <button class="modal-confirm" id="m-confirm-btn" onclick="confirmAdd()">Add to Sheet</button>
+      <button class="modal-confirm" id="m-confirm-btn" onclick="confirmAdd()">Add to Sheet ✓</button>
     </div>
   </div>
 </div>
@@ -451,35 +397,28 @@
 <!-- Settings Modal -->
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
-    <div>
-      <div class="modal-title">⚙️ Settings</div>
-      <div class="modal-sub">Connect Google Sheets for direct adding</div>
-    </div>
+    <div><div class="modal-title">⚙️ Settings</div><div class="modal-sub">Connect your Google Sheet for direct adding</div></div>
     <div class="form-row">
       <label class="form-label">Google Sheets Webhook URL</label>
       <input class="form-input" id="s-webhook" type="url" placeholder="https://script.google.com/macros/s/…/exec" />
     </div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--muted);line-height:1.6;">
-      <strong style="color:var(--text);display:block;margin-bottom:6px;">How to get this URL:</strong>
-      1. Open your Google Sheet<br>
-      2. Click <strong style="color:var(--text);">Extensions → Apps Script</strong><br>
-      3. Paste the script below and click Save<br>
-      4. Click <strong style="color:var(--text);">Deploy → New deployment → Web app</strong><br>
-      5. Set <em>Execute as: Me</em> and <em>Who has access: Anyone</em><br>
-      6. Click Deploy → copy the URL and paste it above
+    <div class="how-to">
+      <strong>How to connect your sheet:</strong><br>
+      1. Open your Google Sheet → <strong>Extensions → Apps Script</strong><br>
+      2. Paste the script below → Save (💾)<br>
+      3. <strong>Deploy → New deployment → Web app</strong><br>
+      4. Execute as: <strong>Me</strong> · Who has access: <strong>Anyone</strong><br>
+      5. Copy the URL → paste above
     </div>
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#7aa2c8;white-space:pre-wrap;overflow-x:auto;">function doPost(e) {
+    <div class="code-block">function doPost(e) {
   const d = JSON.parse(e.postData.contents);
-  const sheet = SpreadsheetApp
+  SpreadsheetApp
     .openById('1boKHpI08Jh7borWbhU9mv_a9y44Kh-CXTRFru5HSmHk')
-    .getActiveSheet();
-  sheet.appendRow([
-    d.name, d.industry, d.phone, d.email,
-    d.address, d.website, d.rating, d.colour,
-    new Date().toLocaleDateString('en-NZ')
-  ]);
+    .getActiveSheet()
+    .appendRow([d.name,d.industry,d.phone,d.email,
+                d.address,d.website,d.rating,d.colour,d.date]);
   return ContentService
-    .createTextOutput(JSON.stringify({success:true}))
+    .createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
     <div class="modal-actions">
@@ -493,319 +432,457 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── State ──
-  let allResults = [];
-  let currentFilter = 'all';
-  let addedCount = 0;
-  let currentIndustry = '';
-  let selectedColour = '#FF3B3B';
-  let pendingIdx = null;
+// ── State ──
+let allResults = [];
+let currentFilter = 'all';
+let addedCount = 0;
+let currentIndustry = '';
+let currentLocation = '';
+let selectedColour = '#FF3B3B';
+let pendingIdx = null;
+let nextPageToken = null;
+let sheetsWebhook = localStorage.getItem('kron_webhook') || '';
+const emailCache = {}; // place_id → {emails, sources}
+const leadStatus = JSON.parse(localStorage.getItem('kron_status') || '{}');
 
-  // Email cache: place_id → emails array or null
-  const emailCache = {};
+// ── Scoring ──
+function scoreLead(b) {
+  let score = 0;
+  if (!b.hasWebsite) score += 40;
+  if (b.phone) score += 20;
+  if (b.rating >= 4) score += 15;
+  if (b.rating >= 4.5) score += 10;
+  if (b.reviewCount >= 10) score += 10;
+  if (b.reviewCount >= 50) score += 5;
+  if (score >= 70) return 'A';
+  if (score >= 50) return 'B';
+  if (score >= 30) return 'C';
+  return 'D';
+}
 
-  // Sheets webhook from localStorage
-  let sheetsWebhook = localStorage.getItem('kron_webhook') || '';
+function scoreLabel(grade) {
+  const map = { A: '🎯 Grade A — Hot Lead', B: '🔶 Grade B', C: '🟡 Grade C', D: '⬜ Grade D' };
+  return map[grade] || grade;
+}
 
-  // ── Search ──
-  function quickSearch(industry, location) {
-    document.getElementById('inp-industry').value = industry;
-    document.getElementById('inp-location').value = location;
-    doSearch();
+// ── Search ──
+function quickSearch(industry, location) {
+  document.getElementById('inp-industry').value = industry;
+  document.getElementById('inp-location').value = location;
+  doSearch();
+}
+
+async function doSearch() {
+  const industry = document.getElementById('inp-industry').value.trim();
+  const location = document.getElementById('inp-location').value.trim() || 'Hamilton';
+  if (!industry) { showToast('Enter an industry to search', '#FF3B3B'); return; }
+
+  currentIndustry = industry;
+  currentLocation = location;
+  allResults = [];
+  nextPageToken = null;
+
+  setLoading(true, 'Searching Google Places…');
+  document.getElementById('empty').classList.remove('show');
+  document.getElementById('results-area').style.display = 'none';
+  document.getElementById('load-more-row').style.display = 'none';
+
+  try {
+    const data = await apiFetch(`/api/places?query=${enc(industry)}&location=${enc(location)}`);
+    allResults = data.results || [];
+    nextPageToken = data.nextPageToken || null;
+    afterSearch();
+  } catch(e) {
+    showToast('Search failed', '#FF3B3B');
+    showEmpty('Search failed — check API key or location');
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function loadMore() {
+  if (!nextPageToken) return;
+  const btn = document.getElementById('load-more-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading…';
+  try {
+    const data = await apiFetch(`/api/places?pagetoken=${enc(nextPageToken)}`);
+    const newResults = data.results || [];
+    allResults = [...allResults, ...newResults];
+    nextPageToken = data.nextPageToken || null;
+    afterSearch(true);
+    showToast(`+${newResults.length} more results loaded`, '#00D4FF');
+  } catch(e) {
+    showToast('Could not load more', '#FF3B3B');
+    btn.disabled = false;
+    btn.textContent = 'Load More Results →';
+  }
+}
+
+function afterSearch(append = false) {
+  updateStats();
+  renderResults();
+  document.getElementById('results-area').style.display = 'block';
+  document.getElementById('shuffle-btn').disabled = false;
+  document.getElementById('bulk-email-btn').disabled = false;
+  document.getElementById('export-btn').disabled = false;
+  const lmRow = document.getElementById('load-more-row');
+  const lmBtn = document.getElementById('load-more-btn');
+  if (nextPageToken) {
+    lmRow.style.display = 'flex';
+    lmBtn.disabled = false;
+    lmBtn.textContent = 'Load More Results →';
+  } else {
+    lmRow.style.display = 'none';
+  }
+}
+
+function shuffleResults() {
+  allResults = [...allResults].sort(() => Math.random() - 0.5);
+  renderResults();
+  showToast('Results shuffled', '#00D4FF');
+}
+
+// ── Stats ──
+function updateStats() {
+  document.getElementById('stat-total').textContent = allResults.length;
+  document.getElementById('stat-nosite').textContent = allResults.filter(r => !r.hasWebsite).length;
+  const emailCount = Object.values(emailCache).filter(v => v && v.emails && v.emails.length > 0).length;
+  document.getElementById('stat-emails').textContent = emailCount;
+  document.getElementById('stat-added').textContent = addedCount;
+}
+
+// ── Filter ──
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-filter="${f}"]`).classList.add('active');
+  renderResults();
+}
+
+function getFiltered() {
+  switch(currentFilter) {
+    case 'nosite':  return allResults.filter(r => !r.hasWebsite);
+    case 'stars':   return allResults.filter(r => r.rating >= 4);
+    case 'A':       return allResults.filter(r => scoreLead(r) === 'A');
+    case 'called':  return allResults.filter(r => leadStatus[r.place_id] === 'called');
+    case 'won':     return allResults.filter(r => leadStatus[r.place_id] === 'won');
+    default:        return allResults;
+  }
+}
+
+// ── Render ──
+function renderResults() {
+  const filtered = getFiltered();
+  const grid = document.getElementById('results-grid');
+  if (allResults.length === 0) { showEmpty('No businesses found — try a different search'); return; }
+  document.getElementById('empty').classList.remove('show');
+  document.getElementById('results-info-text').textContent =
+    `Showing ${filtered.length} of ${allResults.length} result${allResults.length !== 1 ? 's' : ''}`;
+
+  grid.innerHTML = filtered.map(b => {
+    const idx = allResults.indexOf(b);
+    const grade = scoreLead(b);
+    const cached = emailCache[b.place_id];
+    const status = leadStatus[b.place_id] || 'new';
+
+    let emailHtml;
+    if (cached === undefined) {
+      emailHtml = `<button class="email-find-btn" id="efb-${idx}" onclick="findEmail(${idx})">🔍 Find Email</button>`;
+    } else if (cached.emails && cached.emails.length > 0) {
+      const src = cached.sources && cached.sources[cached.emails[0]];
+      emailHtml = `<span class="email-found">✉ ${esc(cached.emails[0])}</span>${src ? `<span class="email-source">${esc(src)}</span>` : ''}`;
+    } else {
+      emailHtml = `<span class="email-none">No email found</span>`;
+    }
+
+    const waLink = b.phone ? b.phone.replace(/\D/g, '') : '';
+    const mapsLink = `https://www.google.com/maps/search/?api=1&query=${enc(b.name + ' ' + b.address)}`;
+
+    return `
+    <div class="card ${!b.hasWebsite ? 'hot' : ''}" id="card-${idx}">
+      <div class="card-header">
+        <div class="card-name">${esc(b.name)}</div>
+        ${!b.hasWebsite ? '<span class="badge badge-hot">🔥 No Website</span>' : '<span class="badge badge-web">✓ Has Website</span>'}
+      </div>
+      <div class="score-row">
+        <span class="score-badge score-${grade}">${scoreLabel(grade)}</span>
+      </div>
+      ${b.address ? `<div class="card-address">${esc(b.address)}</div>` : ''}
+      <div class="card-meta">
+        ${b.rating ? `<div class="rating">★ ${b.rating}${b.reviewCount ? `<span class="review-count">(${b.reviewCount})</span>` : ''}</div>` : ''}
+        ${b.phone ? `<div class="phone-text">${esc(b.phone)}</div>` : '<div class="no-phone">No phone</div>'}
+      </div>
+      ${b.website ? `<a class="card-website" href="${esc(b.website)}" target="_blank" rel="noopener">${esc(b.website.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a>` : ''}
+      <div class="card-email-row" id="email-row-${idx}">${emailHtml}</div>
+      <div class="status-row">
+        <span class="status-label">Status:</span>
+        <select class="status-select s-${status}" id="status-${idx}" onchange="setStatus(${idx}, this)">
+          <option value="new" ${status==='new'?'selected':''}>New</option>
+          <option value="called" ${status==='called'?'selected':''}>📞 Called</option>
+          <option value="demo" ${status==='demo'?'selected':''}>👁 Demo Sent</option>
+          <option value="won" ${status==='won'?'selected':''}>✅ Won</option>
+          <option value="lost" ${status==='lost'?'selected':''}>❌ Lost</option>
+        </select>
+      </div>
+      <div class="card-actions">
+        ${b.phone
+          ? `<a class="action-btn" href="tel:${esc(b.phone)}">📞 Call</a>`
+          : `<button class="action-btn" disabled>📞 Call</button>`}
+        ${waLink
+          ? `<a class="action-btn wa-btn" href="https://wa.me/${waLink.startsWith('0') ? '64'+waLink.slice(1) : waLink}" target="_blank">💬 WA</a>`
+          : `<button class="action-btn" disabled>💬 WA</button>`}
+        <button class="action-btn" onclick="openDemo(${idx})">👁 Demo</button>
+        <a class="action-btn" href="${mapsLink}" target="_blank" title="Open in Google Maps">🗺</a>
+        <button class="action-btn add-btn" onclick="openModal(${idx})">+ Add</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Lead Status ──
+function setStatus(idx, sel) {
+  const b = allResults[idx];
+  const val = sel.value;
+  leadStatus[b.place_id] = val;
+  localStorage.setItem('kron_status', JSON.stringify(leadStatus));
+  sel.className = `status-select s-${val}`;
+}
+
+// ── Email ──
+async function findEmail(idx) {
+  const b = allResults[idx];
+  const btn = document.getElementById(`efb-${idx}`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Searching…'; }
+
+  try {
+    const params = new URLSearchParams();
+    if (b.website) params.set('website', b.website);
+    params.set('name', b.name);
+    params.set('location', currentLocation);
+    const data = await apiFetch(`/api/email?${params}`);
+    emailCache[b.place_id] = { emails: data.emails || [], sources: data.sources || {} };
+  } catch(e) {
+    emailCache[b.place_id] = { emails: [], sources: {} };
+  }
+  updateEmailRow(idx);
+  updateStats();
+}
+
+function updateEmailRow(idx) {
+  const b = allResults[idx];
+  const cached = emailCache[b.place_id];
+  const row = document.getElementById(`email-row-${idx}`);
+  if (!row) return;
+  if (cached && cached.emails && cached.emails.length > 0) {
+    const src = cached.sources && cached.sources[cached.emails[0]];
+    row.innerHTML = `<span class="email-found">✉ ${esc(cached.emails[0])}</span>${src ? `<span class="email-source">${esc(src)}</span>` : ''}`;
+  } else {
+    row.innerHTML = `<span class="email-none">No email found</span>`;
+  }
+}
+
+async function bulkFindEmails() {
+  const btn = document.getElementById('bulk-email-btn');
+  btn.disabled = true;
+  const todo = allResults.filter(b => emailCache[b.place_id] === undefined);
+  showToast(`Finding emails for ${todo.length} businesses…`, '#A855F7');
+
+  for (let i = 0; i < todo.length; i++) {
+    const idx = allResults.indexOf(todo[i]);
+    await findEmail(idx);
+    updateStats();
+    btn.textContent = `📧 ${i+1}/${todo.length}`;
   }
 
-  async function doSearch() {
-    const industry = document.getElementById('inp-industry').value.trim();
-    const location = document.getElementById('inp-location').value.trim() || 'Hamilton';
-    if (!industry) { showToast('Enter an industry to search', '#FF3B3B'); return; }
+  btn.textContent = '📧 Find All Emails';
+  btn.disabled = false;
+  showToast('Email search complete!', '#00E07A');
+}
 
-    currentIndustry = industry;
-    allResults = [];
+// ── Demo ──
+function openDemo(idx) {
+  const b = allResults[idx];
+  window.open(`https://demo.kronosai.co.nz/?b=${enc(b.name)}&t=${enc(currentIndustry)}`, '_blank');
+}
 
-    document.getElementById('loading').classList.add('show');
-    document.getElementById('empty').classList.remove('show');
-    document.getElementById('results-grid').innerHTML = '';
-    document.getElementById('results-info').style.display = 'none';
-    document.getElementById('search-btn').disabled = true;
-    document.getElementById('loading-text').textContent = 'Searching Google Places… (up to 40 results)';
+// ── Add Modal ──
+function openModal(idx) {
+  pendingIdx = idx;
+  const b = allResults[idx];
+  document.getElementById('m-name').value = b.name;
+  document.getElementById('m-phone').value = b.phone || '';
+  document.getElementById('m-address').value = b.address || '';
 
+  const cached = emailCache[b.place_id];
+  document.getElementById('m-email').value = (cached && cached.emails && cached.emails.length > 0) ? cached.emails[0] : '';
+
+  const ind = currentIndustry.toLowerCase();
+  const opts = ['plumber','electrician','painter','builder','auto','barber','cafe','salon','gym','restaurant','trades'];
+  document.getElementById('m-industry').value = opts.find(o => ind.includes(o)) || 'trades';
+
+  selectedColour = '#FF3B3B';
+  document.querySelectorAll('.colour-chip').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.colour-chip[data-colour="#FF3B3B"]').classList.add('selected');
+
+  const badge = document.getElementById('m-sheets-badge');
+  const sub = document.getElementById('m-sub');
+  if (sheetsWebhook) {
+    badge.innerHTML = '<div class="sheets-status-box sheets-ok">✓ Connected — will add directly to Google Sheets</div>';
+    sub.textContent = 'Confirm details before adding';
+    document.getElementById('m-confirm-btn').textContent = 'Add to Sheet ✓';
+  } else {
+    badge.innerHTML = '<div class="sheets-status-box sheets-warn">⚠ No webhook set — will copy to clipboard. Configure in ⚙️ Settings.</div>';
+    sub.textContent = 'Confirm details';
+    document.getElementById('m-confirm-btn').textContent = 'Copy & Open Sheet';
+  }
+
+  document.getElementById('modal-add').classList.add('show');
+}
+
+async function confirmAdd() {
+  const name     = document.getElementById('m-name').value.trim();
+  const industry = document.getElementById('m-industry').value;
+  const phone    = document.getElementById('m-phone').value.trim();
+  const email    = document.getElementById('m-email').value.trim();
+  const address  = document.getElementById('m-address').value.trim();
+  const b        = pendingIdx !== null ? allResults[pendingIdx] : {};
+
+  const payload = {
+    name, industry, phone, email, address,
+    website: b.website || '',
+    rating: b.rating || '',
+    colour: selectedColour,
+    date: new Date().toLocaleDateString('en-NZ')
+  };
+
+  closeModal('modal-add');
+
+  if (sheetsWebhook) {
     try {
-      const res = await fetch(`/api/places?query=${encodeURIComponent(industry)}&location=${encodeURIComponent(location)}`);
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        showToast(data.error || 'Search failed', '#FF3B3B');
-        showEmpty('Search failed — check API key or try a different location');
-        return;
+      await fetch(sheetsWebhook, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      addedCount++;
+      if (pendingIdx !== null) {
+        leadStatus[b.place_id] = 'called';
+        localStorage.setItem('kron_status', JSON.stringify(leadStatus));
       }
-
-      allResults = data.results || [];
       updateStats();
       renderResults();
+      showToast(`${name} added to sheet!`, '#00E07A');
     } catch(e) {
-      showToast('Network error', '#FF3B3B');
-      showEmpty('Network error — check your connection');
-    } finally {
-      document.getElementById('loading').classList.remove('show');
-      document.getElementById('search-btn').disabled = false;
+      showToast('Failed to add — check webhook', '#FF3B3B');
     }
-  }
-
-  function updateStats() {
-    document.getElementById('stat-total').textContent = allResults.length;
-    document.getElementById('stat-nosite').textContent = allResults.filter(r => !r.hasWebsite).length;
-    document.getElementById('stat-added').textContent = addedCount;
-  }
-
-  function setFilter(f) {
-    currentFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`[data-filter="${f}"]`).classList.add('active');
-    renderResults();
-  }
-
-  function getFiltered() {
-    if (currentFilter === 'nosite') return allResults.filter(r => !r.hasWebsite);
-    if (currentFilter === 'stars') return allResults.filter(r => r.rating >= 4);
-    return allResults;
-  }
-
-  function renderResults() {
-    const filtered = getFiltered();
-    const grid = document.getElementById('results-grid');
-    const info = document.getElementById('results-info');
-
-    if (allResults.length === 0) {
-      showEmpty('No businesses found — try a different search');
-      return;
-    }
-
-    document.getElementById('empty').classList.remove('show');
-    info.style.display = 'block';
-    info.textContent = `Showing ${filtered.length} of ${allResults.length} result${allResults.length !== 1 ? 's' : ''}`;
-
-    grid.innerHTML = filtered.map((b) => {
-      const idx = allResults.indexOf(b);
-      const cached = emailCache[b.place_id];
-      const emailHtml = cached === undefined
-        ? `<button class="email-find-btn" id="efb-${idx}" onclick="findEmail(${idx})">🔍 Find Email</button>`
-        : cached.length > 0
-          ? `<span class="email-found">✉ ${esc(cached[0])}</span>`
-          : `<span class="email-none">No email found</span>`;
-
-      return `
-      <div class="card ${!b.hasWebsite ? 'hot' : ''}" id="card-${idx}">
-        <div class="card-header">
-          <div class="card-name">${esc(b.name)}</div>
-          ${!b.hasWebsite
-            ? '<span class="badge badge-hot">🔥 No Website</span>'
-            : '<span class="badge badge-web">✓ Has Website</span>'}
-        </div>
-        ${b.address ? `<div class="card-address">${esc(b.address)}</div>` : ''}
-        <div class="card-meta">
-          ${b.rating ? `<div class="rating">★ ${b.rating}</div>` : ''}
-          ${b.phone
-            ? `<div class="phone-text">${esc(b.phone)}</div>`
-            : '<div class="no-phone">No phone listed</div>'}
-        </div>
-        ${b.website ? `<a class="card-website" href="${esc(b.website)}" target="_blank" rel="noopener">${esc(b.website.replace(/^https?:\/\//,'').replace(/\/$/,''))}</a>` : ''}
-        <div class="card-email-row" id="email-row-${idx}">${emailHtml}</div>
-        <div class="card-actions">
-          ${b.phone
-            ? `<a class="action-btn" href="tel:${esc(b.phone)}">📞 Call</a>`
-            : `<button class="action-btn" disabled>📞 Call</button>`}
-          <button class="action-btn" onclick="openDemo(${idx})">👁 Demo</button>
-          <button class="action-btn add-btn" onclick="openModal(${idx})">+ Add</button>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  // ── Email finder ──
-  async function findEmail(idx) {
-    const b = allResults[idx];
-    if (!b.website) {
-      emailCache[b.place_id] = [];
-      updateEmailRow(idx);
-      showToast('No website to scrape for emails', '#FF9500');
-      return;
-    }
-
-    const btn = document.getElementById(`efb-${idx}`);
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Searching…'; }
-
+  } else {
+    const row = [name, industry, phone, email, address, b.website||'', b.rating||'', selectedColour].join('\t');
     try {
-      const res = await fetch(`/api/email?website=${encodeURIComponent(b.website)}`);
-      const data = await res.json();
-      emailCache[b.place_id] = data.emails || [];
+      await navigator.clipboard.writeText(row);
+      addedCount++;
+      updateStats();
+      showToast('Copied! Opening sheet…', '#00E07A');
+      setTimeout(() => window.open('https://docs.google.com/spreadsheets/d/1boKHpI08Jh7borWbhU9mv_a9y44Kh-CXTRFru5HSmHk/edit', '_blank'), 300);
     } catch(e) {
-      emailCache[b.place_id] = [];
+      showToast('Clipboard blocked', '#FF3B3B');
     }
-    updateEmailRow(idx);
   }
+}
 
-  function updateEmailRow(idx) {
-    const b = allResults[idx];
+function selectColour(el) {
+  document.querySelectorAll('.colour-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedColour = el.dataset.colour;
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  if (!allResults.length) return;
+  const headers = ['Name','Industry','Phone','Email','Address','Website','Rating','Reviews','Has Website','Score','Status'];
+  const rows = allResults.map(b => {
     const cached = emailCache[b.place_id];
-    const row = document.getElementById(`email-row-${idx}`);
-    if (!row) return;
-    if (cached.length > 0) {
-      row.innerHTML = `<span class="email-found">✉ ${esc(cached[0])}</span>`;
-    } else {
-      row.innerHTML = `<span class="email-none">No email found</span>`;
-    }
-  }
-
-  // ── Demo ──
-  function openDemo(idx) {
-    const b = allResults[idx];
-    window.open(`https://demo.kronosai.co.nz/?b=${encodeURIComponent(b.name)}&t=${encodeURIComponent(currentIndustry)}`, '_blank');
-  }
-
-  // ── Add Modal ──
-  function openModal(idx) {
-    pendingIdx = idx;
-    const b = allResults[idx];
-
-    document.getElementById('m-name').value = b.name;
-    document.getElementById('m-phone').value = b.phone || '';
-    document.getElementById('m-address').value = b.address || '';
-
-    // Pre-fill email from cache
-    const cached = emailCache[b.place_id];
-    document.getElementById('m-email').value = (cached && cached.length > 0) ? cached[0] : '';
-
-    // Auto-match industry
-    const ind = currentIndustry.toLowerCase();
-    const opts = ['plumber','electrician','painter','builder','auto','barber','cafe','salon','gym','restaurant','trades'];
-    document.getElementById('m-industry').value = opts.find(o => ind.includes(o)) || 'trades';
-
-    // Reset colour
-    selectedColour = '#FF3B3B';
-    document.querySelectorAll('.colour-chip').forEach(c => c.classList.remove('selected'));
-    document.querySelector('.colour-chip[data-colour="#FF3B3B"]').classList.add('selected');
-
-    // Sheets status
-    const badge = document.getElementById('m-sheets-badge');
-    const statusText = document.getElementById('m-sheets-status-text');
-    if (sheetsWebhook) {
-      badge.innerHTML = '<div class="sheets-status ok">✓ Connected to Google Sheets — will add directly</div>';
-      statusText.textContent = 'Confirm details before adding';
-      document.getElementById('m-confirm-btn').textContent = 'Add to Sheet ✓';
-    } else {
-      badge.innerHTML = '<div class="sheets-status warn">⚠ No Sheets webhook — will copy to clipboard instead. Set one in ⚙️ Settings.</div>';
-      statusText.textContent = 'Confirm details';
-      document.getElementById('m-confirm-btn').textContent = 'Copy & Open Sheet';
-    }
-
-    document.getElementById('modal-add').classList.add('show');
-  }
-
-  async function confirmAdd() {
-    const name     = document.getElementById('m-name').value.trim();
-    const industry = document.getElementById('m-industry').value;
-    const phone    = document.getElementById('m-phone').value.trim();
-    const email    = document.getElementById('m-email').value.trim();
-    const address  = document.getElementById('m-address').value.trim();
-    const colour   = selectedColour;
-
-    const b = pendingIdx !== null ? allResults[pendingIdx] : {};
-
-    const payload = {
-      name, industry, phone, email, address,
-      website: b.website || '',
-      rating: b.rating || '',
-      colour,
-      date: new Date().toLocaleDateString('en-NZ')
-    };
-
-    closeModal('modal-add');
-
-    if (sheetsWebhook) {
-      // POST directly to Apps Script
-      try {
-        await fetch(sheetsWebhook, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        addedCount++;
-        updateStats();
-        showToast(`${name} added to sheet!`, '#00E07A');
-      } catch(e) {
-        showToast('Failed to add — check webhook URL', '#FF3B3B');
-      }
-    } else {
-      // Fallback: clipboard + open sheet
-      const row = [name, industry, phone, email, address, b.website || '', b.rating || '', colour].join('\t');
-      try {
-        await navigator.clipboard.writeText(row);
-        addedCount++;
-        updateStats();
-        showToast('Copied! Opening sheet…', '#00E07A');
-        setTimeout(() => window.open('https://docs.google.com/spreadsheets/d/1boKHpI08Jh7borWbhU9mv_a9y44Kh-CXTRFru5HSmHk/edit', '_blank'), 300);
-      } catch(e) {
-        showToast('Clipboard blocked — allow clipboard access', '#FF3B3B');
-      }
-    }
-  }
-
-  function selectColour(el) {
-    document.querySelectorAll('.colour-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedColour = el.dataset.colour;
-  }
-
-  // ── Settings Modal ──
-  function openSettings() {
-    document.getElementById('s-webhook').value = sheetsWebhook;
-    document.getElementById('modal-settings').classList.add('show');
-  }
-
-  function saveSettings() {
-    sheetsWebhook = document.getElementById('s-webhook').value.trim();
-    localStorage.setItem('kron_webhook', sheetsWebhook);
-    closeModal('modal-settings');
-    showToast(sheetsWebhook ? 'Sheets webhook saved!' : 'Webhook cleared', sheetsWebhook ? '#00E07A' : '#FF9500');
-  }
-
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('show');
-  }
-
-  // Close on overlay click
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+    const email = (cached && cached.emails && cached.emails.length > 0) ? cached.emails[0] : '';
+    return [
+      b.name, currentIndustry, b.phone, email, b.address, b.website,
+      b.rating, b.reviewCount, b.hasWebsite ? 'Yes' : 'No',
+      scoreLead(b), leadStatus[b.place_id] || 'new'
+    ].map(v => `"${String(v||'').replace(/"/g,'""')}"`);
   });
 
-  // ── Toast ──
-  function showToast(msg, color) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.background = color || '#00E07A';
-    t.style.color = (color === '#FF3B3B') ? '#fff' : '#000';
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `leads-${currentIndustry}-${currentLocation}-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV downloaded!', '#00E07A');
+}
 
-  function showEmpty(msg) {
-    const el = document.getElementById('empty');
-    el.classList.add('show');
-    el.querySelector('div:last-child').textContent = msg;
-    document.getElementById('results-info').style.display = 'none';
-  }
+// ── Settings ──
+function openSettings() {
+  document.getElementById('s-webhook').value = sheetsWebhook;
+  document.getElementById('modal-settings').classList.add('show');
+}
 
-  function esc(s) {
-    if (!s) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
+function saveSettings() {
+  sheetsWebhook = document.getElementById('s-webhook').value.trim();
+  localStorage.setItem('kron_webhook', sheetsWebhook);
+  closeModal('modal-settings');
+  showToast(sheetsWebhook ? 'Webhook saved!' : 'Webhook cleared', sheetsWebhook ? '#00E07A' : '#FF9500');
+}
 
-  ['inp-industry','inp-location'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-  });
+// ── Helpers ──
+async function apiFetch(url) {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || 'Request failed');
+  return data;
+}
 
-  document.getElementById('empty').classList.add('show');
+function setLoading(on, msg) {
+  document.getElementById('loading').classList.toggle('show', on);
+  if (msg) document.getElementById('loading-text').textContent = msg;
+  document.getElementById('search-btn').disabled = on;
+}
+
+function showEmpty(msg) {
+  const el = document.getElementById('empty');
+  el.classList.add('show');
+  el.querySelector('div:last-child').textContent = msg;
+  document.getElementById('results-area').style.display = 'none';
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+});
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color || '#00E07A';
+  t.style.color = (color === '#FF3B3B' || color === '#A855F7') ? '#fff' : '#000';
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function enc(s) { return encodeURIComponent(s || ''); }
+
+['inp-industry','inp-location'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+});
+
+document.getElementById('empty').classList.add('show');
 </script>
 </body>
 </html>
