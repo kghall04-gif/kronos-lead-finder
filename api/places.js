@@ -63,29 +63,14 @@ module.exports = async (req, res) => {
       if (!geoData.results?.length) return res.status(404).json({ error: 'Location not found' });
       const { lat, lng } = geoData.results[0].geometry.location;
 
-      // Page 1
       searchData = await fetchUrl(
         `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' New Zealand')}&location=${lat},${lng}&radius=20000&key=${key}`
       );
-
-      // Page 2 — fetch immediately so initial results are ~40
-      if (searchData.next_page_token && searchData.results?.length) {
-        await sleep(2000);
-        const page2 = await fetchUrl(
-          `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(searchData.next_page_token)}&key=${key}`
-        );
-        if (page2.results?.length) {
-          searchData = {
-            results: [...searchData.results, ...page2.results],
-            next_page_token: page2.next_page_token || null
-          };
-        }
-      }
     }
 
     if (!searchData.results?.length) return res.status(200).json({ results: [], nextPageToken: null });
 
-    const places = searchData.results.slice(0, 40);
+    const places = searchData.results.slice(0, 20);
     const detailed = [];
 
     for (let i = 0; i < places.length; i += 5) {
