@@ -416,7 +416,7 @@
     .openById('1boKHpI08Jh7borWbhU9mv_a9y44Kh-CXTRFru5HSmHk')
     .getActiveSheet()
     .appendRow([d.name, d.industry, d.phone, d.email,
-                d.colour, d.website, d.date]);
+                d.colour, d.website, '', d.date]);
   return ContentService
     .createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
