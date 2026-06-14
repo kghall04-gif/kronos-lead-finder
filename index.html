@@ -325,6 +325,7 @@ a { color:inherit; text-decoration:none; }
   <button class="fbtn" data-f="open"    onclick="setFilter('open')">🟢 Open Now</button>
   <button class="fbtn" data-f="gradeA"  onclick="setFilter('gradeA')">🎯 Grade A</button>
   <div class="tsep"></div>
+  <button class="tbtn" id="btn-more"      onclick="moreResults()" disabled>🔄 More Results</button>
   <button class="tbtn" id="btn-allemails" onclick="bulkEmail()" disabled>📧 Find All Emails</button>
   <button class="tbtn" id="btn-export"    onclick="exportCSV()" disabled>⬇ Export CSV</button>
 </div>
@@ -488,6 +489,7 @@ async function doSearch(cursor) {
 
     document.getElementById('btn-allemails').disabled = allResults.length === 0;
     document.getElementById('btn-export').disabled    = allResults.length === 0;
+    document.getElementById('btn-more').disabled      = !data.cursor;
     loadStats();
   } catch(e) {
     showToast(e.message || 'Search failed','#FF3B3B');
@@ -509,10 +511,18 @@ async function prevPage() {
   currentPage--;
   const cursor = pageCursors[currentPage - 1] || null;
   if (currentPage === 1) {
-    await doSearch(null); // fresh search
+    await doSearch(null);
   } else {
     await doSearch(cursor);
   }
+}
+
+async function moreResults() {
+  const cursor = pageCursors[currentPage];
+  if (!cursor) { showToast('No more results available','#FF9500'); return; }
+  currentPage++;
+  await doSearch(cursor);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── Filters ──

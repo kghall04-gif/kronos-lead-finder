@@ -122,13 +122,21 @@ module.exports = async (req, res) => {
       }
     } else {
       if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
-      const geoData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${GOOGLE_KEY}`
-      );
-      if (!geoData.results?.length) return res.status(404).json({ error: 'Location not found' });
-      const { lat, lng } = geoData.results[0].geometry.location;
+
+      // Try geocoding for radius filtering — fall back to text-only if Geocoding API unavailable
+      let locationParam = '';
+      try {
+        const geoData = await fetchUrl(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location + ', New Zealand')}&key=${GOOGLE_KEY}`
+        );
+        if (geoData.results?.length) {
+          const { lat, lng } = geoData.results[0].geometry.location;
+          locationParam = `&location=${lat},${lng}&radius=${parseInt(radius) || 20000}`;
+        }
+      } catch(e) { /* geocoding optional — proceed without lat/lng */ }
+
       searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location)}&location=${lat},${lng}&radius=${parseInt(radius) || 20000}&key=${GOOGLE_KEY}`
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' New Zealand')}${locationParam}&key=${GOOGLE_KEY}`
       );
     }
 
