@@ -63,10 +63,15 @@ module.exports = async (req, res) => {
     let searchData;
 
     if (pagetoken) {
-      // Continuation page — Google requires 2s before token is valid
+      // Decode from URL-safe base64 to restore original token
+      const rawToken = Buffer.from(
+        pagetoken.replace(/-/g, '+').replace(/_/g, '/').replace(/\./g, '='),
+        'base64'
+      ).toString('utf8');
+      // Google requires 2s before token is valid
       await sleep(2000);
       searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(pagetoken)}&key=${key}`
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(rawToken)}&key=${key}`
       );
     } else {
       if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });

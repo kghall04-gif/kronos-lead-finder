@@ -507,7 +507,9 @@ async function loadMore() {
   btn.disabled = true;
   btn.textContent = '⏳ Loading…';
   try {
-    const data = await apiFetch(`/api/places?pagetoken=${enc(nextPageToken)}`);
+    // URL-safe base64 encode to protect token's +/= characters through URL encoding
+    const safeToken = btoa(nextPageToken).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'.');
+    const data = await apiFetch(`/api/places?pagetoken=${safeToken}`);
     const newResults = data.results || [];
     allResults = [...allResults, ...newResults];
     nextPageToken = data.nextPageToken || null;
