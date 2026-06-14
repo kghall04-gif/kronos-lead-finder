@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
       );
     }
 
-    if (!searchData.results?.length) return res.status(200).json({ results: [], nextPageToken: null });
+    if (!searchData.results?.length) return res.status(200).json({ results: [], nextPageToken: null, debug: searchData.status || 'NO_RESULTS' });
 
     const places = searchData.results.slice(0, 20);
     const detailed = [];
@@ -95,7 +95,8 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       results: detailed,
-      nextPageToken: searchData.next_page_token || null
+      nextPageToken: searchData.next_page_token || null,
+      debug: { status: searchData.status, hasToken: !!searchData.next_page_token }
     });
   } catch(e) {
     return res.status(500).json({ error: e.message });

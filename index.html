@@ -512,7 +512,8 @@ async function loadMore() {
     allResults = [...allResults, ...newResults];
     nextPageToken = data.nextPageToken || null;
     afterSearch(true);
-    showToast(`+${newResults.length} more results loaded`, '#00D4FF');
+    const debugMsg = data.debug ? ` [${JSON.stringify(data.debug)}]` : '';
+    showToast(`+${newResults.length} more results loaded${newResults.length === 0 ? debugMsg : ''}`, newResults.length > 0 ? '#00D4FF' : '#FF9500');
   } catch(e) {
     showToast('Could not load more', '#FF3B3B');
     btn.disabled = false;
