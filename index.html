@@ -441,7 +441,8 @@ let currentLocation = '';
 let selectedColour = '#FF3B3B';
 let pendingIdx = null;
 let nextPageToken = null;
-let sheetsWebhook = localStorage.getItem('kron_webhook') || '';
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwbNSeSAXuigkrNosiQbhLAkAFvy3bWeuIXM6rWgVEGQZF3RS571sK43kL-84ihulQX/exec';
+let sheetsWebhook = WEBHOOK_URL;
 const emailCache = {}; // place_id → {emails, sources}
 const leadStatus = JSON.parse(localStorage.getItem('kron_status') || '{}');
 
