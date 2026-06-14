@@ -15,11 +15,25 @@ function fetchUrl(url) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+function basicResult(place) {
+  return {
+    place_id: place.place_id,
+    name: place.name,
+    phone: '',
+    website: '',
+    hasWebsite: false,
+    rating: place.rating || 0,
+    reviewCount: place.user_ratings_total || 0,
+    address: place.formatted_address || '',
+    isOpen: null
+  };
+}
+
 async function fetchDetails(place, key) {
   try {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,website,rating,opening_hours,formatted_address,user_ratings_total&key=${key}`;
     const data = await fetchUrl(url);
-    if (!data.result) return null;
+    if (!data.result) return basicResult(place);
     const d = data.result;
     return {
       place_id: place.place_id,
@@ -32,7 +46,7 @@ async function fetchDetails(place, key) {
       address: d.formatted_address || place.formatted_address || '',
       isOpen: d.opening_hours?.open_now ?? null
     };
-  } catch(e) { return null; }
+  } catch(e) { return basicResult(place); }
 }
 
 module.exports = async (req, res) => {
@@ -73,10 +87,10 @@ module.exports = async (req, res) => {
     const places = searchData.results.slice(0, 20);
     const detailed = [];
 
-    for (let i = 0; i < places.length; i += 5) {
-      const batch = places.slice(i, i + 5);
+    for (let i = 0; i < places.length; i += 10) {
+      const batch = places.slice(i, i + 10);
       const results = await Promise.all(batch.map(p => fetchDetails(p, key)));
-      detailed.push(...results.filter(Boolean));
+      detailed.push(...results);
     }
 
     return res.status(200).json({
