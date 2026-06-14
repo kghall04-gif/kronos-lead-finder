@@ -257,7 +257,7 @@
   .code-block {
     background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
     padding: 10px; font-family: monospace; font-size: 10px; color: #7aa2c8;
-    white-space: pre-wrap; overflow-x: auto; max-height: 140px; overflow-y: auto;
+    white-space: pre-wrap; overflow-x: auto; max-height: 160px; overflow-y: auto;
   }
   .how-to { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--muted); line-height: 1.65; }
   .how-to strong { color: var(--text); }
@@ -415,8 +415,8 @@
   SpreadsheetApp
     .openById('1boKHpI08Jh7borWbhU9mv_a9y44Kh-CXTRFru5HSmHk')
     .getActiveSheet()
-    .appendRow([d.name,d.industry,d.phone,d.email,
-                d.address,d.website,d.rating,d.colour,d.date]);
+    .appendRow([d.name, d.industry, d.phone, d.email,
+                d.colour, d.website, d.date]);
   return ContentService
     .createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
@@ -750,10 +750,9 @@ async function confirmAdd() {
   const b        = pendingIdx !== null ? allResults[pendingIdx] : {};
 
   const payload = {
-    name, industry, phone, email, address,
-    website: b.website || '',
-    rating: b.rating || '',
+    name, industry, phone, email,
     colour: selectedColour,
+    website: b.website || '',
     date: new Date().toLocaleDateString('en-NZ')
   };
 
