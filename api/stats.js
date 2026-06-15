@@ -1,7 +1,7 @@
 const https = require('https');
 
-const SUPA_URL = process.env.SUPABASE_URL || 'https://knukfjvuwqckmnsyxozt.supabase.co';
-const SUPA_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudWtmanZ1d3Fja21uc3l4b3p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0Mjc3NjAsImV4cCI6MjA5NzAwMzc2MH0.j_OgX2LB4kPkjl9P_JRBX0EGxepAC9ua64ksPvJdG8o';
+const SUPA_URL = process.env.SUPABASE_URL;
+const SUPA_KEY = process.env.SUPABASE_KEY;
 
 function getCount(path) {
   return new Promise((resolve) => {

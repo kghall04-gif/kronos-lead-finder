@@ -1,8 +1,8 @@
 const https = require('https');
 
-const GOOGLE_KEY  = process.env.GOOGLE_PLACES_KEY || 'AIzaSyA06QbgEjQqVfO0ak5_Zo_MKp_BDxBhuz0';
-const SUPA_URL    = process.env.SUPABASE_URL       || 'https://knukfjvuwqckmnsyxozt.supabase.co';
-const SUPA_KEY    = process.env.SUPABASE_KEY       || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudWtmanZ1d3Fja21uc3l4b3p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0Mjc3NjAsImV4cCI6MjA5NzAwMzc2MH0.j_OgX2LB4kPkjl9P_JRBX0EGxepAC9ua64ksPvJdG8o';
+const GOOGLE_KEY  = process.env.GOOGLE_PLACES_KEY;
+const SUPA_URL    = process.env.SUPABASE_URL;
+const SUPA_KEY    = process.env.SUPABASE_KEY;
 const CO_KEY      = process.env.COMPANIES_OFFICE_KEY || '';
 
 // Suburb rotation tables — page 1 uses index 0, page 2 uses index 1, etc.
