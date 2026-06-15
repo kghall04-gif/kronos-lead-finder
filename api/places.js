@@ -6,6 +6,194 @@ const SUPA_KEY   = process.env.SUPABASE_KEY;
 const CO_KEY     = process.env.COMPANIES_OFFICE_KEY || '';
 const YELP_KEY   = process.env.YELP_API_KEY || '';
 
+// Complete NZ suburb coverage — used to vary search queries across pages
+const NZ_LOCATIONS = {
+  // AUCKLAND REGION
+  'auckland': [
+    'Auckland CBD', 'Ponsonby', 'Newmarket', 'Parnell', 'Remuera',
+    'Mt Eden', 'Epsom', 'Onehunga', 'Otahuhu', 'Manukau',
+    'Papatoetoe', 'Botany', 'Howick', 'Pakuranga', 'Flat Bush',
+    'Henderson', 'New Lynn', 'Avondale', 'Waitakere', 'Massey',
+    'Albany', 'Takapuna', 'Devonport', 'Birkenhead', 'Glenfield',
+    'Browns Bay', 'Orewa', 'Silverdale', 'Kumeu', 'Helensville',
+    'Pukekohe', 'Papakura', 'Beachlands', 'Clevedon', 'Warkworth',
+    'Wellsford', 'Snells Beach', 'Whangaparaoa', 'Stanmore Bay', 'Milford'
+  ],
+  // HAMILTON / WAIKATO
+  'hamilton': [
+    'Hamilton CBD', 'Hamilton East', 'Hamilton West', 'Frankton',
+    'Te Rapa', 'Nawton', 'Dinsdale', 'Rototuna', 'Flagstaff',
+    'Hillcrest', 'Claudelands', 'Chartwell', 'Peacocke', 'Ruakura',
+    'Silverdale', 'Huntington', 'Temple View', 'Enderley', 'Melville'
+  ],
+  'waikato': [
+    'Hamilton', 'Cambridge', 'Te Awamutu', 'Huntly', 'Ngaruawahia',
+    'Raglan', 'Morrinsville', 'Matamata', 'Putaruru', 'Tokoroa',
+    'Te Kuiti', 'Otorohanga', 'Taupo', 'Turangi', 'Mangakino'
+  ],
+  // BAY OF PLENTY
+  'tauranga': [
+    'Tauranga CBD', 'Mount Maunganui', 'Papamoa', 'Greerton',
+    'Bethlehem', 'Pyes Pa', 'Welcome Bay', 'Matua', 'Otumoetai',
+    'Hairini', 'Gate Pa', 'Brookfield', 'Judea', 'Parkvale'
+  ],
+  'bay of plenty': [
+    'Tauranga', 'Rotorua', 'Whakatane', 'Te Puke', 'Katikati',
+    'Opotiki', 'Kawerau', 'Murupara', 'Maketu', 'Edgecumbe'
+  ],
+  'rotorua': [
+    'Rotorua CBD', 'Ngongotaha', 'Holdens Bay', 'Fairy Springs',
+    'Western Heights', 'Glenholme', 'Fenton Park', 'Koutu', 'Fordlands'
+  ],
+  // WELLINGTON REGION
+  'wellington': [
+    'Wellington CBD', 'Thorndon', 'Newtown', 'Kilbirnie',
+    'Miramar', 'Karori', 'Johnsonville', 'Tawa', 'Churton Park',
+    'Island Bay', 'Brooklyn', 'Aro Valley', 'Te Aro', 'Mt Victoria',
+    'Hataitai', 'Lyall Bay', 'Seatoun', 'Roseneath', 'Oriental Bay'
+  ],
+  'lower hutt': [
+    'Lower Hutt CBD', 'Petone', 'Eastbourne', 'Wainuiomata',
+    'Stokes Valley', 'Naenae', 'Taita', 'Avalon', 'Waterloo', 'Moera'
+  ],
+  'upper hutt': [
+    'Upper Hutt CBD', 'Silverstream', 'Heretaunga', 'Trentham',
+    'Maoribank', 'Birchville', 'Totara Park', 'Pinehaven'
+  ],
+  'porirua': [
+    'Porirua CBD', 'Titahi Bay', 'Ranui', 'Cannons Creek',
+    'Waitangirua', 'Ascot Park', 'Plimmerton', 'Paremata'
+  ],
+  // CHRISTCHURCH / CANTERBURY
+  'christchurch': [
+    'Christchurch CBD', 'Riccarton', 'Hornby', 'Sockburn',
+    'Papanui', 'Merivale', 'St Albans', 'Sydenham', 'Addington',
+    'Ferrymead', 'Sumner', 'New Brighton', 'Burnside', 'Bishopdale',
+    'Belfast', 'Rolleston', 'Lincoln', 'Rangiora', 'Kaiapoi',
+    'Halswell', 'Wigram', 'Spreydon', 'Cashmere', 'Woolston'
+  ],
+  'canterbury': [
+    'Christchurch', 'Rangiora', 'Kaiapoi', 'Rolleston', 'Lincoln',
+    'Ashburton', 'Timaru', 'Temuka', 'Geraldine', 'Darfield',
+    'Oxford', 'Leeston', 'Prebbleton', 'Halswell', 'Waimakariri'
+  ],
+  // DUNEDIN / OTAGO
+  'dunedin': [
+    'Dunedin CBD', 'South Dunedin', 'Mosgiel', 'Green Island',
+    'Caversham', 'St Kilda', 'St Clair', 'Andersons Bay', 'Maori Hill',
+    'Roslyn', 'Mornington', 'Corstorphine', 'Burnside', 'Brockville',
+    'Abbotsford', 'Concord', 'Fairfield', 'Waldronville', 'Brighton'
+  ],
+  'otago': [
+    'Dunedin', 'Queenstown', 'Wanaka', 'Alexandra', 'Cromwell',
+    'Oamaru', 'Balclutha', 'Milton', 'Lawrence', 'Roxburgh',
+    'Ranfurly', 'Palmerston', 'Mosgiel', 'Portobello'
+  ],
+  'queenstown': [
+    'Queenstown CBD', 'Frankton', 'Arrowtown', 'Kelvin Heights',
+    'Arthurs Point', 'Lake Hayes', 'Jacks Point', 'Hanley Farm',
+    'Wanaka', 'Albert Town', 'Hawea', 'Luggate'
+  ],
+  // HAWKES BAY
+  'napier': [
+    'Napier CBD', 'Taradale', 'Marewa', 'Onekawa', 'Maraenui',
+    'Pirimai', 'Greenmeadows', 'Bay View', 'Clive', 'Eskdale'
+  ],
+  'hastings': [
+    'Hastings CBD', 'Havelock North', 'Flaxmere', 'Whakatu',
+    'Clive', 'Bridge Pa', 'Puketapu', 'Haumoana', 'Te Awanga'
+  ],
+  'hawkes bay': [
+    'Napier', 'Hastings', 'Havelock North', 'Waipukurau',
+    'Wairoa', 'Dannevirke', 'Waipawa', 'Otane', 'Takapau'
+  ],
+  // PALMERSTON NORTH / MANAWATU
+  'palmerston north': [
+    'Palmerston North CBD', 'Roslyn', 'Milson', 'Awapuni',
+    'Kelvin Grove', 'Highbury', 'Cloverlea', 'Takaro', 'Terrace End',
+    'Hokowhitu', 'Aokautere', 'Fitzherbert', 'Ashhurst', 'Fielding'
+  ],
+  'manawatu': [
+    'Palmerston North', 'Feilding', 'Levin', 'Foxton', 'Shannon',
+    'Bulls', 'Marton', 'Sanson', 'Ashhurst', 'Woodville'
+  ],
+  // NELSON / MARLBOROUGH
+  'nelson': [
+    'Nelson CBD', 'Stoke', 'Richmond', 'Wakefield', 'Brightwater',
+    'Hope', 'Motueka', 'Mapua', 'Moutere', 'Takaka', 'Golden Bay'
+  ],
+  'marlborough': [
+    'Blenheim', 'Picton', 'Havelock', 'Renwick', 'Seddon',
+    'Ward', 'Kaikoura', 'Rai Valley', 'Canvastown'
+  ],
+  // NORTHLAND
+  'whangarei': [
+    'Whangarei CBD', 'Kamo', 'Maunu', 'Tikipunga', 'Otangarei',
+    'Raumanga', 'Morningside', 'Regent', 'Port Marsden', 'Ruakaka'
+  ],
+  'northland': [
+    'Whangarei', 'Kerikeri', 'Kaitaia', 'Dargaville', 'Paihia',
+    'Russell', 'Mangawhai', 'Waipu', 'Maungaturoto', 'Kaiwaka',
+    'Rawene', 'Hokianga', 'Kawakawa', 'Okaihau', 'Kaikohe'
+  ],
+  // TARANAKI
+  'new plymouth': [
+    'New Plymouth CBD', 'Strandon', 'Fitzroy', 'Merrilands',
+    'Vogeltown', 'Inglewood', 'Bell Block', 'Waitara', 'Oakura',
+    'Oakura Beach', 'Omata', 'Westown', 'Moturoa', 'Spotswood'
+  ],
+  'taranaki': [
+    'New Plymouth', 'Hawera', 'Stratford', 'Inglewood', 'Waitara',
+    'Opunake', 'Patea', 'Eltham', 'Okato', 'Urenui'
+  ],
+  // GISBORNE
+  'gisborne': [
+    'Gisborne CBD', 'Elgin', 'Kaiti', 'Whataupoko', 'Mangapapa',
+    'Manutuke', 'Patutahi', 'Ormond', 'Wainui Beach', 'Tolaga Bay'
+  ],
+  // SOUTHLAND
+  'invercargill': [
+    'Invercargill CBD', 'Bluff', 'Waikiwi', 'Hawthorndale',
+    'Strathern', 'Grasmere', 'Georgetown', 'Windsor', 'Otatara'
+  ],
+  'southland': [
+    'Invercargill', 'Gore', 'Winton', 'Lumsden', 'Riverton',
+    'Tuatapere', 'Te Anau', 'Milford Sound', 'Wyndham', 'Balclutha'
+  ],
+  // WEST COAST
+  'west coast': [
+    'Greymouth', 'Hokitika', 'Westport', 'Reefton', 'Karamea',
+    'Franz Josef', 'Fox Glacier', 'Haast', 'Ross', 'Runanga'
+  ],
+  // WHANGANUI
+  'whanganui': [
+    'Whanganui CBD', 'Castlecliff', 'Gonville', 'Aramoho',
+    'St Johns Hill', 'Springvale', 'Mosston', 'Brunswick', 'Fordell'
+  ],
+  // KAPITI COAST
+  'kapiti': [
+    'Paraparaumu', 'Waikanae', 'Otaki', 'Raumati', 'Paekakariki',
+    'Levin', 'Foxton', 'Shannon', 'Te Horo', 'Peka Peka'
+  ],
+  // TIMARU
+  'timaru': [
+    'Timaru CBD', 'Washdyke', 'Gleniti', 'Parkside', 'Highfield',
+    'Pleasant Point', 'Temuka', 'Geraldine', 'Orari'
+  ]
+};
+
+function getSuburbs(location) {
+  const l = location.toLowerCase().trim();
+  if (NZ_LOCATIONS[l]) return NZ_LOCATIONS[l];
+  for (const key of Object.keys(NZ_LOCATIONS)) {
+    if (l.includes(key) || key.includes(l)) return NZ_LOCATIONS[key];
+  }
+  return [
+    location + ' CBD', location + ' North', location + ' South',
+    location + ' East', location + ' West', 'Central ' + location
+  ];
+}
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function fetchUrl(urlStr, extraHeaders) {
