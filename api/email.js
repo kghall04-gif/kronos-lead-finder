@@ -1,6 +1,16 @@
 const https = require('https');
 const http  = require('http');
 
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+const BLOCKLIST = [
+  'noreply','no-reply','donotreply','example','test@','@test',
+  'sentry','wix','wordpress','squarespace','weebly','shopify',
+  '@2x','@3x','.png','.jpg','.gif','.svg','.webp','schema',
+  '@google','@facebook','@apple','@microsoft','@adobe',
+  'privacy@','abuse@','postmaster@','legal@','spam@',
+  'yourname','youremail','email@domain','name@'
+];
+
 function fetchHtml(urlStr, redirects) {
   redirects = redirects || 0;
   return new Promise((resolve, reject) => {
@@ -15,7 +25,7 @@ function fetchHtml(urlStr, redirects) {
         'User-Agent': 'Mozilla/5.0 (compatible; KronosBot/2.0)',
         'Accept': 'text/html,application/xhtml+xml'
       },
-      timeout: 7000
+      timeout: 5000
     }, (res) => {
       if ([301,302,303,307,308].includes(res.statusCode) && res.headers.location) {
         const loc = res.headers.location;
@@ -23,7 +33,7 @@ function fetchHtml(urlStr, redirects) {
         return fetchHtml(next, redirects + 1).then(resolve).catch(reject);
       }
       let data = '';
-      res.on('data', chunk => { data += chunk; if (data.length > 500000) res.destroy(); });
+      res.on('data', chunk => { data += chunk; if (data.length > 300000) res.destroy(); });
       res.on('end', () => resolve(data));
       res.on('error', reject);
     });
@@ -31,15 +41,6 @@ function fetchHtml(urlStr, redirects) {
     req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
   });
 }
-
-const EMAIL_RE = /[a-zA-Z0-9._%+\-]{1,64}@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,10}/g;
-const BLOCKLIST = [
-  'noreply','no-reply','donotreply','example.com','test@','@test',
-  'sentry','wix','wordpress','squarespace','weebly','shopify',
-  '@2x','@3x','.png','.jpg','.gif','.svg','.webp',
-  'privacy@','abuse@','postmaster@','legal@','spam@','support@wix',
-  'yourname','youremail','email@domain','name@'
-];
 
 function extractEmails(html) {
   const decoded = html
@@ -59,30 +60,65 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { website } = req.query;
-  if (!website) return res.status(400).json({ error: 'Missing website', emails: [] });
-
-  let base;
-  try { base = new URL(website.startsWith('http') ? website : 'https://' + website); }
-  catch(e) { return res.status(400).json({ error: 'Invalid URL', emails: [] }); }
-
-  const origin = `${base.protocol}//${base.hostname}`;
+  const { website, name, location } = req.query;
   const emails = new Set();
+  const sources = [];
+  let foundDomain = null;
 
-  try {
-    const html = await fetchHtml(origin);
-    extractEmails(html).forEach(e => emails.add(e));
-  } catch(e) {}
-
-  if (emails.size === 0) {
-    for (const path of ['/contact', '/contact-us', '/about', '/about-us', '/get-in-touch', '/reach-us']) {
-      try {
-        const html = await fetchHtml(origin + path);
-        extractEmails(html).forEach(e => emails.add(e));
-        if (emails.size > 0) break;
-      } catch(e) {}
-    }
+  // STEP 1: Scrape website if provided
+  if (website) {
+    try {
+      const base = new URL(website.startsWith('http') ? website : 'https://' + website);
+      foundDomain = base.hostname.replace(/^www\./, '');
+      const origin = `${base.protocol}//${base.hostname}`;
+      for (const path of ['', '/contact', '/about', '/contact-us']) {
+        try {
+          const html = await fetchHtml(origin + path);
+          extractEmails(html).forEach(e => emails.add(e));
+        } catch(e) {}
+      }
+      if (emails.size > 0) sources.push('website');
+    } catch(e) {}
   }
 
-  return res.status(200).json({ emails: [...emails].slice(0, 6) });
+  // STEP 2: Yellow Pages NZ
+  if (name) {
+    try {
+      const ypUrl = `https://www.yellowpages.co.nz/search?q=${encodeURIComponent(name)}&l=New+Zealand`;
+      const html = await fetchHtml(ypUrl);
+      const found = extractEmails(html);
+      found.forEach(e => emails.add(e));
+      if (found.length > 0) sources.push('yellowpages');
+
+      // Also find any linked business website in YP and scrape it
+      if (!foundDomain) {
+        const siteMatch = html.match(/href="(https?:\/\/(?!(?:www\.)?yellowpages)[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}[^"]*?)"/);
+        if (siteMatch) {
+          try {
+            const siteHtml = await fetchHtml(siteMatch[1]);
+            const siteEmails = extractEmails(siteHtml);
+            siteEmails.forEach(e => emails.add(e));
+            if (siteEmails.length > 0) sources.push('yellowpages-linked');
+            foundDomain = new URL(siteMatch[1]).hostname.replace(/^www\./, '');
+          } catch(e) {}
+        }
+      }
+    } catch(e) {}
+  }
+
+  // STEP 3: Common patterns if domain known but no email found yet
+  if (foundDomain && emails.size === 0) {
+    ['info','contact','admin','hello','enquiries'].forEach(prefix => {
+      emails.add(`${prefix}@${foundDomain}`);
+    });
+    sources.push('guessed');
+  }
+
+  // STEP 4: Final dedup + global blocklist
+  const result = [...emails].filter(e =>
+    !['@google','@facebook','@apple','@microsoft','@adobe','@sentry','@wix']
+      .some(b => e.toLowerCase().includes(b))
+  ).slice(0, 8);
+
+  return res.status(200).json({ emails: result, sources: [...new Set(sources)] });
 };

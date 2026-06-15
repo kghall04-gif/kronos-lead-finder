@@ -1,40 +1,25 @@
 const https = require('https');
 
-const GOOGLE_KEY  = process.env.GOOGLE_PLACES_KEY;
-const SUPA_URL    = process.env.SUPABASE_URL;
-const SUPA_KEY    = process.env.SUPABASE_KEY;
-const CO_KEY      = process.env.COMPANIES_OFFICE_KEY || '';
+const GOOGLE_KEY = process.env.GOOGLE_PLACES_KEY;
+const SUPA_URL   = process.env.SUPABASE_URL;
+const SUPA_KEY   = process.env.SUPABASE_KEY;
+const CO_KEY     = process.env.COMPANIES_OFFICE_KEY || '';
+const YELP_KEY   = process.env.YELP_API_KEY || '';
 
-// Suburb rotation tables — page 1 uses index 0, page 2 uses index 1, etc.
-const SUBURB_MAP = {
-  'auckland':     ['Auckland CBD', 'Auckland North Shore', 'Auckland South Auckland', 'Auckland West', 'Auckland East'],
-  'hamilton':     ['Hamilton', 'Hamilton East', 'Hamilton West', 'Frankton Hamilton', 'Te Rapa Hamilton'],
-  'wellington':   ['Wellington CBD', 'Wellington Newtown', 'Wellington Karori', 'Lower Hutt', 'Porirua'],
-  'christchurch': ['Christchurch CBD', 'Christchurch East', 'Christchurch Riccarton', 'Papanui Christchurch', 'Hornby Christchurch'],
-  'tauranga':     ['Tauranga', 'Mount Maunganui', 'Papamoa', 'Bethlehem Tauranga', 'Greerton Tauranga'],
-  'dunedin':      ['Dunedin', 'South Dunedin', 'Mosgiel', 'Dunedin North', 'Green Island Dunedin'],
-  'palmerston':   ['Palmerston North', 'Palmerston North West', 'Palmerston North East', 'Roslyn Palmerston', 'Terrace End Palmerston'],
-  'napier':       ['Napier', 'Hastings', 'Taradale Napier', 'Onekawa Napier', 'Clive Hawke\'s Bay'],
-  'nelson':       ['Nelson', 'Richmond Nelson', 'Stoke Nelson', 'Tasman Nelson', 'Motueka'],
-  'rotorua':      ['Rotorua', 'Rotorua East', 'Ngongotaha Rotorua', 'Holdens Bay Rotorua', 'Koutu Rotorua'],
-};
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function getLocationVariant(location, page) {
-  const loc = location.toLowerCase().trim();
-  for (const [city, suburbs] of Object.entries(SUBURB_MAP)) {
-    if (loc.includes(city)) {
-      const idx = (page - 1) % suburbs.length;
-      return suburbs[idx];
-    }
-  }
-  // Unknown location — append ordinal variation so query differs each page
-  const suffixes = ['', ' central', ' north', ' south', ' east'];
-  return location + (suffixes[(page - 1) % suffixes.length] || '');
-}
-
-function fetchUrl(url) {
+function fetchUrl(urlStr, extraHeaders) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'KronosLeadFinder/2.0', Accept: 'application/json' } }, (res) => {
+    const u = new URL(urlStr);
+    https.get({
+      hostname: u.hostname,
+      path: u.pathname + (u.search || ''),
+      headers: {
+        'User-Agent': 'KronosLeadFinder/2.0',
+        Accept: 'application/json',
+        ...(extraHeaders || {})
+      }
+    }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -44,7 +29,6 @@ function fetchUrl(url) {
     }).on('error', reject);
   });
 }
-
 
 function basicResult(place) {
   return {
@@ -57,7 +41,8 @@ function basicResult(place) {
     reviewCount: place.user_ratings_total || 0,
     address: place.formatted_address || '',
     isOpen: null,
-    director: ''
+    director: '',
+    source: 'google'
   };
 }
 
@@ -77,9 +62,41 @@ async function fetchDetails(place) {
       reviewCount: r.user_ratings_total || place.user_ratings_total || 0,
       address: r.formatted_address || place.formatted_address || '',
       isOpen: r.opening_hours?.open_now ?? null,
-      director: ''
+      director: '',
+      source: 'google'
     };
   } catch(e) { return basicResult(place); }
+}
+
+async function fetchYelp(query, location) {
+  if (!YELP_KEY) return [];
+  try {
+    const url = `https://api.yelp.com/v3/businesses/search?term=${encodeURIComponent(query)}&location=${encodeURIComponent(location + ' New Zealand')}&limit=10`;
+    const data = await fetchUrl(url, { Authorization: `Bearer ${YELP_KEY}` });
+    if (!data.businesses?.length) return [];
+    return data.businesses.map(b => ({
+      place_id: 'yelp_' + b.id,
+      name: b.name,
+      phone: b.phone || '',
+      website: b.url || '',
+      hasWebsite: !!b.url,
+      rating: b.rating || 0,
+      reviewCount: b.review_count || 0,
+      address: b.location?.display_address?.join(', ') || '',
+      isOpen: b.is_closed != null ? !b.is_closed : null,
+      director: '',
+      source: 'yelp'
+    }));
+  } catch(e) { return []; }
+}
+
+function mergeResults(googleResults, yelpResults) {
+  const names = googleResults.map(g => g.name.toLowerCase().trim());
+  const unique = yelpResults.filter(y => {
+    const yn = y.name.toLowerCase().trim();
+    return !names.some(gn => gn === yn || gn.includes(yn) || yn.includes(gn));
+  });
+  return [...googleResults, ...unique];
 }
 
 async function getDirector(name) {
@@ -96,10 +113,10 @@ async function getDirector(name) {
 }
 
 async function upsertToSupabase(places) {
+  if (!SUPA_URL || !SUPA_KEY) return;
   return new Promise((resolve) => {
     const body = JSON.stringify(places);
     const url = new URL(`${SUPA_URL}/rest/v1/leads`);
-
     const options = {
       hostname: url.hostname,
       path: url.pathname + '?on_conflict=place_id',
@@ -112,21 +129,12 @@ async function upsertToSupabase(places) {
         'Content-Length': Buffer.byteLength(body)
       }
     };
-
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        console.log('Supabase status:', res.statusCode, data);
-        resolve(res.statusCode);
-      });
+      res.on('end', () => { console.log('Supabase status:', res.statusCode, data); resolve(res.statusCode); });
     });
-
-    req.on('error', (e) => {
-      console.error('Supabase error:', e.message);
-      resolve(null);
-    });
-
+    req.on('error', (e) => { console.error('Supabase error:', e.message); resolve(null); });
     req.write(body);
     req.end();
   });
@@ -138,23 +146,32 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { query, location, radius = '20000', page = '1' } = req.query;
-  if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
-
-  const pageNum = Math.max(1, parseInt(page) || 1);
-  const locVariant = getLocationVariant(location, pageNum);
-  const searchQuery = `${query} ${locVariant} New Zealand`;
+  const { query, location, pagetoken } = req.query;
 
   try {
-    const searchData = await fetchUrl(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${GOOGLE_KEY}`
-    );
+    let searchData;
+
+    if (pagetoken) {
+      await sleep(2000);
+      searchData = await fetchUrl(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(pagetoken)}&key=${GOOGLE_KEY}`
+      );
+      if (searchData.status === 'INVALID_REQUEST' || !searchData.results?.length) {
+        return res.status(200).json({ results: [], nextPageToken: null, error: 'No more results' });
+      }
+    } else {
+      if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
+      searchData = await fetchUrl(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' new zealand')}&key=${GOOGLE_KEY}`
+      );
+    }
 
     if (!searchData.results?.length) {
-      return res.status(200).json({ results: [], page: pageNum, hasMore: pageNum < 5, googleStatus: searchData.status });
+      return res.status(200).json({ results: [], nextPageToken: null, googleStatus: searchData.status });
     }
 
     const places = searchData.results.slice(0, 20);
+    const nextPageToken = searchData.next_page_token || null;
 
     // Fetch details in parallel batches of 5
     const detailed = [];
@@ -164,32 +181,34 @@ module.exports = async (req, res) => {
       detailed.push(...results);
     }
 
-    // Companies Office director lookup (parallel, only if key set)
-    if (CO_KEY) {
-      const directors = await Promise.all(detailed.map(b => getDirector(b.name)));
-      directors.forEach((d, i) => { detailed[i].director = d; });
+    // Merge Yelp results only on page 1
+    let merged = detailed;
+    if (!pagetoken && query && location) {
+      const yelpResults = await fetchYelp(query, location);
+      merged = mergeResults(detailed, yelpResults);
+    }
+
+    // Companies Office director lookup (only if key set, only on page 1)
+    if (CO_KEY && !pagetoken) {
+      const directors = await Promise.all(merged.map(b => getDirector(b.name)));
+      directors.forEach((d, i) => { merged[i].director = d; });
     }
 
     // Upsert to Supabase
-    await upsertToSupabase(detailed.map(b => ({
+    await upsertToSupabase(merged.map(b => ({
       place_id: b.place_id,
       name: b.name,
       phone: b.phone || null,
-      email: b.email || null,
+      email: null,
       website: b.website || null,
       has_website: b.hasWebsite,
       rating: b.rating || null,
       address: b.address || null,
-      industry: query,
-      location_searched: locVariant
+      industry: query || '',
+      location_searched: location || ''
     })));
 
-    return res.status(200).json({
-      results: detailed,
-      page: pageNum,
-      hasMore: pageNum < 5,
-      locationUsed: locVariant
-    });
+    return res.status(200).json({ results: merged, nextPageToken, query, location });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
