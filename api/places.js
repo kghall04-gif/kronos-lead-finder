@@ -5,9 +5,32 @@ const SUPA_URL    = process.env.SUPABASE_URL       || 'https://knukfjvuwqckmnsyx
 const SUPA_KEY    = process.env.SUPABASE_KEY       || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtudWtmanZ1d3Fja21uc3l4b3p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0Mjc3NjAsImV4cCI6MjA5NzAwMzc2MH0.j_OgX2LB4kPkjl9P_JRBX0EGxepAC9ua64ksPvJdG8o';
 const CO_KEY      = process.env.COMPANIES_OFFICE_KEY || '';
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function toHex(s)   { return Buffer.from(s, 'utf8').toString('hex'); }
-function fromHex(h) { return Buffer.from(h, 'hex').toString('utf8'); }
+// Suburb rotation tables — page 1 uses index 0, page 2 uses index 1, etc.
+const SUBURB_MAP = {
+  'auckland':     ['Auckland CBD', 'Auckland North Shore', 'Auckland South Auckland', 'Auckland West', 'Auckland East'],
+  'hamilton':     ['Hamilton', 'Hamilton East', 'Hamilton West', 'Frankton Hamilton', 'Te Rapa Hamilton'],
+  'wellington':   ['Wellington CBD', 'Wellington Newtown', 'Wellington Karori', 'Lower Hutt', 'Porirua'],
+  'christchurch': ['Christchurch CBD', 'Christchurch East', 'Christchurch Riccarton', 'Papanui Christchurch', 'Hornby Christchurch'],
+  'tauranga':     ['Tauranga', 'Mount Maunganui', 'Papamoa', 'Bethlehem Tauranga', 'Greerton Tauranga'],
+  'dunedin':      ['Dunedin', 'South Dunedin', 'Mosgiel', 'Dunedin North', 'Green Island Dunedin'],
+  'palmerston':   ['Palmerston North', 'Palmerston North West', 'Palmerston North East', 'Roslyn Palmerston', 'Terrace End Palmerston'],
+  'napier':       ['Napier', 'Hastings', 'Taradale Napier', 'Onekawa Napier', 'Clive Hawke\'s Bay'],
+  'nelson':       ['Nelson', 'Richmond Nelson', 'Stoke Nelson', 'Tasman Nelson', 'Motueka'],
+  'rotorua':      ['Rotorua', 'Rotorua East', 'Ngongotaha Rotorua', 'Holdens Bay Rotorua', 'Koutu Rotorua'],
+};
+
+function getLocationVariant(location, page) {
+  const loc = location.toLowerCase().trim();
+  for (const [city, suburbs] of Object.entries(SUBURB_MAP)) {
+    if (loc.includes(city)) {
+      const idx = (page - 1) % suburbs.length;
+      return suburbs[idx];
+    }
+  }
+  // Unknown location — append ordinal variation so query differs each page
+  const suffixes = ['', ' central', ' north', ' south', ' east'];
+  return location + (suffixes[(page - 1) % suffixes.length] || '');
+}
 
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
@@ -105,47 +128,23 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { query, location, radius = '20000', cursor } = req.query;
+  const { query, location, radius = '20000', page = '1' } = req.query;
+  if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
+
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const locVariant = getLocationVariant(location, pageNum);
+  const searchQuery = `${query} ${locVariant} New Zealand`;
 
   try {
-    let searchData;
-
-    if (cursor) {
-      let token;
-      try { token = fromHex(cursor); } catch(e) { return res.status(400).json({ error: 'Invalid cursor' }); }
-      await sleep(2000);
-      searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(token)}&key=${GOOGLE_KEY}`
-      );
-      if (searchData.status === 'INVALID_REQUEST') {
-        return res.status(200).json({ results: [], cursor: null, error: 'Page expired — please search again' });
-      }
-    } else {
-      if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
-
-      // Try geocoding for radius filtering — fall back to text-only if Geocoding API unavailable
-      let locationParam = '';
-      try {
-        const geoData = await fetchUrl(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location + ', New Zealand')}&key=${GOOGLE_KEY}`
-        );
-        if (geoData.results?.length) {
-          const { lat, lng } = geoData.results[0].geometry.location;
-          locationParam = `&location=${lat},${lng}&radius=${parseInt(radius) || 20000}`;
-        }
-      } catch(e) { /* geocoding optional — proceed without lat/lng */ }
-
-      searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' New Zealand')}${locationParam}&key=${GOOGLE_KEY}`
-      );
-    }
+    const searchData = await fetchUrl(
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${GOOGLE_KEY}`
+    );
 
     if (!searchData.results?.length) {
-      return res.status(200).json({ results: [], cursor: null, total: 0, googleStatus: searchData.status });
+      return res.status(200).json({ results: [], page: pageNum, hasMore: pageNum < 5, googleStatus: searchData.status });
     }
 
     const places = searchData.results.slice(0, 20);
-    const nextCursor = searchData.next_page_token ? toHex(searchData.next_page_token) : null;
 
     // Fetch details in parallel batches of 5
     const detailed = [];
@@ -161,7 +160,7 @@ module.exports = async (req, res) => {
       directors.forEach((d, i) => { detailed[i].director = d; });
     }
 
-    // Upsert to Supabase (fire and forget — don't block response)
+    // Upsert to Supabase (fire and forget)
     upsertSupabase(detailed.map(b => ({
       place_id: b.place_id,
       name: b.name,
@@ -172,11 +171,16 @@ module.exports = async (req, res) => {
       review_count: b.reviewCount,
       address: b.address,
       director_name: b.director,
-      search_query: query || '',
-      search_location: location || ''
+      search_query: query,
+      search_location: locVariant
     })));
 
-    return res.status(200).json({ results: detailed, cursor: nextCursor, total: searchData.results.length });
+    return res.status(200).json({
+      results: detailed,
+      page: pageNum,
+      hasMore: pageNum < 5,
+      locationUsed: locVariant
+    });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }

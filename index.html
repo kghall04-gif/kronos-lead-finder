@@ -413,7 +413,6 @@ let allResults   = [];
 let filtered     = [];
 let currentFilter = 'all';
 let currentPage  = 1;
-let pageCursors  = [null]; // index i = cursor to SEND for page i+1
 let currentQuery = '';
 let currentLoc   = '';
 let currentRadius = '20000';
@@ -447,49 +446,47 @@ function qs(industry, location) {
   doSearch();
 }
 
-async function doSearch(cursor) {
+async function doSearch(page) {
   const q = document.getElementById('inp-q').value.trim();
   const l = document.getElementById('inp-l').value.trim() || 'Hamilton';
   const r = document.getElementById('inp-r').value;
   if (!q) { showToast('Enter an industry to search','#FF3B3B'); return; }
 
-  if (!cursor) {
+  page = page || 1;
+  if (page === 1) {
     currentQuery  = q;
     currentLoc    = l;
     currentRadius = r;
-    currentPage   = 1;
-    pageCursors   = [null];
     allResults    = [];
     saveHistory(q, l);
   }
+  currentPage = page;
 
-  setLoading(true, `Searching for ${q} in ${l}…`);
+  setLoading(true, `Searching for ${q} in ${l}… (page ${page})`);
   document.getElementById('results-wrap').style.display = 'none';
   document.getElementById('empty').classList.remove('show');
 
   try {
-    let url = `/api/places?query=${enc(q)}&location=${enc(l)}&radius=${enc(r)}`;
-    if (cursor) url = `/api/places?cursor=${enc(cursor)}`;
+    const url = `/api/places?query=${enc(currentQuery)}&location=${enc(currentLoc)}&radius=${enc(currentRadius)}&page=${page}`;
     const data = await apiFetch(url);
 
     allResults = data.results || [];
-    if (data.cursor) pageCursors[currentPage] = data.cursor;
 
     updateHeaderStats();
     applyFilter();
     document.getElementById('results-wrap').style.display = 'block';
 
-    const hasNext = !!data.cursor;
+    const hasMore = data.hasMore !== false;
     const hasPrev = currentPage > 1;
     const pgDiv = document.getElementById('pagination');
-    pgDiv.style.display = (hasNext || hasPrev) ? 'flex' : 'none';
+    pgDiv.style.display = (hasMore || hasPrev) ? 'flex' : 'none';
     document.getElementById('pg-prev').disabled = !hasPrev;
-    document.getElementById('pg-next').disabled = !hasNext;
-    document.getElementById('pg-info').textContent = `Page ${currentPage}`;
+    document.getElementById('pg-next').disabled = !hasMore;
+    document.getElementById('pg-info').textContent = `Page ${currentPage}${data.locationUsed ? ' · ' + data.locationUsed : ''}`;
 
     document.getElementById('btn-allemails').disabled = allResults.length === 0;
     document.getElementById('btn-export').disabled    = allResults.length === 0;
-    document.getElementById('btn-more').disabled      = !data.cursor;
+    document.getElementById('btn-more').disabled      = !hasMore;
     loadStats();
   } catch(e) {
     showToast(e.message || 'Search failed','#FF3B3B');
@@ -500,28 +497,18 @@ async function doSearch(cursor) {
 }
 
 async function nextPage() {
-  const cursor = pageCursors[currentPage];
-  if (!cursor) return;
-  currentPage++;
-  await doSearch(cursor);
+  await doSearch(currentPage + 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function prevPage() {
   if (currentPage <= 1) return;
-  currentPage--;
-  const cursor = pageCursors[currentPage - 1] || null;
-  if (currentPage === 1) {
-    await doSearch(null);
-  } else {
-    await doSearch(cursor);
-  }
+  await doSearch(currentPage - 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function moreResults() {
-  const cursor = pageCursors[currentPage];
-  if (!cursor) { showToast('No more results available','#FF9500'); return; }
-  currentPage++;
-  await doSearch(cursor);
+  await doSearch(currentPage + 1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
