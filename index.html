@@ -414,10 +414,9 @@ let allResults    = [];
 let filtered      = [];
 let currentFilter = 'all';
 let currentPage   = 1;
-let nextPageToken = null;
+let totalPages    = 1;
 let currentQuery  = '';
 let currentLoc    = '';
-let currentRadius = '20000';
 let addedCount    = 0;
 let pendingIdx    = null;
 let selColour     = '#FF3B3B';
@@ -448,23 +447,20 @@ function qs(industry, location) {
   doSearch();
 }
 
-async function doSearch(token) {
-  // token = undefined means fresh search; token = string means page 2+
-  const isFresh = !token;
-  const q = isFresh ? document.getElementById('inp-q').value.trim() : currentQuery;
-  const l = isFresh ? (document.getElementById('inp-l').value.trim() || 'Hamilton') : currentLoc;
+async function doSearch(page) {
+  page = page || 1;
+  const q = page === 1 ? document.getElementById('inp-q').value.trim() : currentQuery;
+  const l = page === 1 ? (document.getElementById('inp-l').value.trim() || 'Hamilton') : currentLoc;
   if (!q) { showToast('Enter an industry to search','#FF3B3B'); return; }
 
-  if (isFresh) {
-    currentQuery  = q;
-    currentLoc    = l;
-    currentRadius = document.getElementById('inp-r').value;
-    currentPage   = 1;
-    nextPageToken = null;
-    allResults    = [];
+  if (page === 1) {
+    currentQuery = q;
+    currentLoc   = l;
+    currentPage  = 1;
+    allResults   = [];
     saveHistory(q, l);
   } else {
-    currentPage++;
+    currentPage = page;
   }
 
   setLoading(true, `Searching for ${q} in ${l}… (page ${currentPage})`);
@@ -472,25 +468,28 @@ async function doSearch(token) {
   document.getElementById('empty').classList.remove('show');
 
   try {
-    const url = isFresh
-      ? `/api/places?query=${enc(q)}&location=${enc(l)}`
-      : `/api/places?pagetoken=${enc(token)}`;
-    const data = await apiFetch(url);
+    const data = await apiFetch(`/api/places?query=${enc(currentQuery)}&location=${enc(currentLoc)}&page=${currentPage}`);
 
-    allResults    = data.results || [];
-    nextPageToken = data.nextPageToken || null;
+    allResults = data.results || [];
+    totalPages = data.totalPages || 1;
 
     updateHeaderStats();
     applyFilter();
     document.getElementById('results-wrap').style.display = 'block';
 
+    // Suburb label
+    const subs = data.suburbsSearched || [];
+    document.getElementById('res-info').textContent =
+      `Showing ${filtered.length} of ${allResults.length} result${allResults.length !== 1 ? 's' : ''}` +
+      (subs.length ? ` — Searching: ${subs.join(', ')}` : '');
+
     const hasPrev = currentPage > 1;
-    const hasNext = !!nextPageToken;
+    const hasNext = currentPage < totalPages;
     const pgDiv   = document.getElementById('pagination');
     pgDiv.style.display = (hasPrev || hasNext) ? 'flex' : 'none';
     document.getElementById('pg-prev').disabled = !hasPrev;
     document.getElementById('pg-next').disabled = !hasNext;
-    document.getElementById('pg-info').textContent = `Page ${currentPage}`;
+    document.getElementById('pg-info').textContent = `Page ${currentPage} of ${totalPages}`;
 
     document.getElementById('btn-allemails').disabled = allResults.length === 0;
     document.getElementById('btn-export').disabled    = allResults.length === 0;
@@ -505,21 +504,20 @@ async function doSearch(token) {
 }
 
 async function nextPage() {
-  if (!nextPageToken) return;
-  await doSearch(nextPageToken);
+  if (currentPage >= totalPages) return;
+  await doSearch(currentPage + 1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function prevPage() {
   if (currentPage <= 1) return;
-  // Go back to a fresh search (page 1) — Google tokens don't support backward navigation
-  currentPage = 0;
-  await doSearch();
+  await doSearch(currentPage - 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function moreResults() {
-  if (!nextPageToken) { showToast('No more results','#FF9500'); return; }
-  await doSearch(nextPageToken);
+  if (currentPage >= totalPages) { showToast('No more results','#FF9500'); return; }
+  await doSearch(currentPage + 1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

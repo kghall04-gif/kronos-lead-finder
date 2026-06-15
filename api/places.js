@@ -334,69 +334,130 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { query, location, pagetoken } = req.query;
+  const page     = parseInt(req.query.page) || 1;
+  const query    = req.query.query || req.query.q || '';
+  const location = req.query.location || '';
+
+  if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
 
   try {
-    let searchData;
+    let placesResults = [];
+    let suburbsSearched = [];
 
-    if (pagetoken) {
-      await sleep(2000);
-      searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?pagetoken=${encodeURIComponent(pagetoken)}&key=${GOOGLE_KEY}`
+    if (page === 1) {
+      // Page 1 — geocode then straight text search
+      let locationParam = '';
+      try {
+        const geoData = await fetchUrl(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location + ' New Zealand')}&key=${GOOGLE_KEY}`
+        );
+        if (geoData.results?.length) {
+          const { lat, lng } = geoData.results[0].geometry.location;
+          locationParam = `&location=${lat},${lng}&radius=20000`;
+        }
+      } catch(e) {}
+
+      const searchData = await fetchUrl(
+        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' New Zealand')}${locationParam}&key=${GOOGLE_KEY}`
       );
-      if (searchData.status === 'INVALID_REQUEST' || !searchData.results?.length) {
-        return res.status(200).json({ results: [], nextPageToken: null, error: 'No more results' });
-      }
+      placesResults  = searchData.results || [];
+      suburbsSearched = [location];
+
     } else {
-      if (!query || !location) return res.status(400).json({ error: 'Missing query or location' });
-      searchData = await fetchUrl(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + location + ' new zealand')}&key=${GOOGLE_KEY}`
+      // Page 2+ — suburb rotation: 3 suburbs per page
+      const suburbs  = getSuburbs(location);
+      const startIdx = (page - 2) * 3;
+      const selected = suburbs.slice(startIdx, startIdx + 3);
+
+      if (selected.length === 0) {
+        const totalPages = Math.ceil(suburbs.length / 3) + 1;
+        return res.status(200).json({ results: [], page, totalPages, suburbsSearched: [] });
+      }
+
+      suburbsSearched = selected;
+
+      const searches = await Promise.all(
+        selected.map(suburb =>
+          fetchUrl(
+            `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' ' + suburb + ' New Zealand')}&key=${GOOGLE_KEY}`
+          ).catch(() => ({ results: [] }))
+        )
       );
+
+      const seen = new Set();
+      for (const result of searches) {
+        for (const place of (result.results || [])) {
+          if (!seen.has(place.place_id)) {
+            seen.add(place.place_id);
+            placesResults.push(place);
+          }
+        }
+      }
     }
 
-    if (!searchData.results?.length) {
-      return res.status(200).json({ results: [], nextPageToken: null, googleStatus: searchData.status });
+    if (!placesResults.length) {
+      const suburbs    = getSuburbs(location);
+      const totalPages = Math.ceil(suburbs.length / 3) + 1;
+      return res.status(200).json({ results: [], page, totalPages, suburbsSearched });
     }
 
-    const places = searchData.results.slice(0, 20);
-    const nextPageToken = searchData.next_page_token || null;
-
-    // Fetch details in parallel batches of 5
+    // Fetch details in batches of 5 (max 20)
+    const top20    = placesResults.slice(0, 20);
     const detailed = [];
-    for (let i = 0; i < places.length; i += 5) {
-      const batch = places.slice(i, i + 5);
-      const results = await Promise.all(batch.map(p => fetchDetails(p)));
-      detailed.push(...results);
+    for (let i = 0; i < top20.length; i += 5) {
+      const batch = top20.slice(i, i + 5);
+      const batchResults = await Promise.all(
+        batch.map(place =>
+          fetchUrl(
+            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,website,rating,opening_hours,formatted_address,user_ratings_total&key=${GOOGLE_KEY}`
+          ).then(d => ({
+            place_id:    place.place_id,
+            name:        d.result?.name || place.name,
+            phone:       d.result?.formatted_phone_number || '',
+            website:     d.result?.website || '',
+            hasWebsite:  !!d.result?.website,
+            rating:      d.result?.rating || 0,
+            reviewCount: d.result?.user_ratings_total || 0,
+            address:     d.result?.formatted_address || '',
+            isOpen:      d.result?.opening_hours?.open_now ?? null,
+            director:    '',
+            source:      'google'
+          })).catch(() => null)
+        )
+      );
+      detailed.push(...batchResults.filter(Boolean));
     }
 
-    // Merge Yelp results only on page 1
+    // Merge Yelp on page 1 only
     let merged = detailed;
-    if (!pagetoken && query && location) {
+    if (page === 1) {
       const yelpResults = await fetchYelp(query, location);
       merged = mergeResults(detailed, yelpResults);
     }
 
-    // Companies Office director lookup (only if key set, only on page 1)
-    if (CO_KEY && !pagetoken) {
+    // Companies Office on page 1 only
+    if (CO_KEY && page === 1) {
       const directors = await Promise.all(merged.map(b => getDirector(b.name)));
       directors.forEach((d, i) => { merged[i].director = d; });
     }
 
-    // Upsert to Supabase
     await upsertToSupabase(merged.map(b => ({
-      place_id: b.place_id,
-      name: b.name,
-      phone: b.phone || null,
-      email: null,
-      website: b.website || null,
-      has_website: b.hasWebsite,
-      rating: b.rating || null,
-      address: b.address || null,
-      industry: query || '',
-      location_searched: location || ''
+      place_id:          b.place_id,
+      name:              b.name,
+      phone:             b.phone || null,
+      email:             null,
+      website:           b.website || null,
+      has_website:       b.hasWebsite,
+      rating:            b.rating || null,
+      address:           b.address || null,
+      industry:          query,
+      location_searched: location
     })));
 
-    return res.status(200).json({ results: merged, nextPageToken, query, location });
+    const suburbs    = getSuburbs(location);
+    const totalPages = Math.ceil(suburbs.length / 3) + 1;
+
+    return res.status(200).json({ results: merged, page, totalPages, suburbsSearched });
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
