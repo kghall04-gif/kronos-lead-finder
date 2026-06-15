@@ -45,22 +45,6 @@ function fetchUrl(url) {
   });
 }
 
-function postData(hostname, path, headers, bodyObj) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify(bodyObj);
-    const req = https.request({
-      hostname, path, method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), ...headers }
-    }, (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => resolve({ status: res.statusCode, body: data }));
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
-}
 
 function basicResult(place) {
   return {
@@ -111,15 +95,41 @@ async function getDirector(name) {
   } catch(e) { return ''; }
 }
 
-function upsertSupabase(rows) {
-  try {
-    const u = new URL(SUPA_URL);
-    postData(u.hostname, '/rest/v1/leads', {
-      'apikey': SUPA_KEY,
-      'Authorization': `Bearer ${SUPA_KEY}`,
-      'Prefer': 'resolution=merge-duplicates,return=minimal'
-    }, rows).catch(() => {});
-  } catch(e) {}
+async function upsertToSupabase(places) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify(places);
+    const url = new URL(`${SUPA_URL}/rest/v1/leads`);
+
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + '?on_conflict=place_id',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Prefer': 'resolution=merge-duplicates,return=minimal',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        console.log('Supabase status:', res.statusCode, data);
+        resolve(res.statusCode);
+      });
+    });
+
+    req.on('error', (e) => {
+      console.error('Supabase error:', e.message);
+      resolve(null);
+    });
+
+    req.write(body);
+    req.end();
+  });
 }
 
 module.exports = async (req, res) => {
@@ -160,19 +170,18 @@ module.exports = async (req, res) => {
       directors.forEach((d, i) => { detailed[i].director = d; });
     }
 
-    // Upsert to Supabase (fire and forget)
-    upsertSupabase(detailed.map(b => ({
+    // Upsert to Supabase
+    await upsertToSupabase(detailed.map(b => ({
       place_id: b.place_id,
       name: b.name,
-      phone: b.phone,
-      website: b.website,
+      phone: b.phone || null,
+      email: b.email || null,
+      website: b.website || null,
       has_website: b.hasWebsite,
-      rating: b.rating,
-      review_count: b.reviewCount,
-      address: b.address,
-      director_name: b.director,
-      search_query: query,
-      search_location: locVariant
+      rating: b.rating || null,
+      address: b.address || null,
+      industry: query,
+      location_searched: locVariant
     })));
 
     return res.status(200).json({
