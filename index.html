@@ -426,6 +426,7 @@ let totalPages      = 1;
 let currentQuery    = '';
 let currentLoc      = '';
 let currentIndustry = '';
+let currentLocation = '';
 let addedCount    = 0;
 let pendingIdx    = null;
 let selColour     = '#FF3B3B';
@@ -465,6 +466,7 @@ async function doSearch(page) {
   if (page === 1) {
     currentQuery    = q;
     currentLoc      = l;
+    currentLocation = l;
     currentIndustry = q;
     currentPage     = 1;
     allResults      = [];
@@ -677,61 +679,78 @@ function updateEmailRow(idx) {
 const CHATBOT_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwXmjBo9tAAAWEReoL5BGYtyxx8zXJ9vYWspNGI10pC5OpYENZUYOcfiHSAWHECYSOp/exec';
 
 async function autoScrapeAllEmails(results) {
-  for (let i = 0; i < results.length; i++) {
-    const place = results[i];
-    const dot = document.getElementById(`esd-${i}`);
-    if (dot) dot.className = 'escrape-dot scraping';
+  const batchSize = 3;
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+  for (let i = 0; i < results.length; i += batchSize) {
+    const batch = results.slice(i, i + batchSize);
 
-      const params = new URLSearchParams({ name: place.name || '' });
-      if (place.website) params.append('website', place.website);
-      if (currentLoc) params.append('location', currentLoc);
+    // Scrape 3 simultaneously
+    await Promise.all(batch.map(async (place) => {
+      const idx = results.indexOf(place);
+      const dot = document.getElementById(`esd-${idx}`);
+      if (dot) dot.className = 'escrape-dot scraping';
 
-      const res = await fetch(`/api/email?${params.toString()}`, { signal: controller.signal });
-      clearTimeout(timeout);
-      const data = await res.json();
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
-      const emails = data.emails || [];
-      emailCache[place.place_id] = emails;
-      place.foundEmail = emails[0] || '';
-      if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
-    } catch(e) {
-      emailCache[place.place_id] = [];
-      place.foundEmail = '';
-      if (dot) dot.className = 'escrape-dot none';
-    }
+        const params = new URLSearchParams({ name: place.name || '' });
+        if (place.website) params.append('website', place.website);
+        if (currentLocation) params.append('location', currentLocation);
 
-    updateEmailRow(i);
-    updateHeaderStats();
-    await saveOneToSheet(place);
+        const res = await fetch(`/api/email?${params.toString()}`, { signal: controller.signal });
+        clearTimeout(timeout);
+        const data = await res.json();
+
+        const emails = data.emails || [];
+        emailCache[place.place_id] = emails;
+        place.foundEmail = emails[0] || '';
+        if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
+      } catch(e) {
+        emailCache[place.place_id] = [];
+        place.foundEmail = '';
+        if (dot) dot.className = 'escrape-dot none';
+      }
+      updateEmailRow(results.indexOf(place));
+      updateHeaderStats();
+    }));
+
+    // Save this batch to sheet immediately
+    await saveBatchToSheet(batch);
+    showToast(`✓ Saved ${Math.min(i + batchSize, results.length)} of ${results.length} to sheet`);
     await new Promise(r => setTimeout(r, 500));
   }
 
-  showToast(`✓ ${results.length} leads saved to sheet`, '#00E07A');
+  showToast(`✓ All ${results.length} leads saved to sheet!`, '#00E07A');
 }
 
-async function saveOneToSheet(place) {
-  try {
-    await fetch(CHATBOT_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+async function saveBatchToSheet(batch) {
+  for (const place of batch) {
+    try {
+      const payload = {
         name:       place.name || '',
         industry:   currentIndustry || '',
         phone:      place.phone || '',
         email:      place.foundEmail || '',
         website:    place.website || '',
-        hasWebsite: place.hasWebsite,
+        hasWebsite: place.hasWebsite || false,
         rating:     place.rating || '',
         address:    place.address || '',
         status:     place.hasWebsite ? 'Has Website - Auto Added' : 'No Website - Review Needed',
-        date:       new Date().toLocaleDateString('en-NZ')
-      })
-    });
-  } catch(e) {}
+        date:       new Date().toLocaleDateString()
+      };
+      console.log('Saving to sheet:', payload);
+      const response = await fetch(CHATBOT_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.text();
+      console.log('Sheet response:', result);
+    } catch(e) {
+      console.error('Failed to save to sheet:', place.name, e.message);
+    }
+  }
 }
 
 async function bulkEmail() {
