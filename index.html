@@ -742,11 +742,11 @@ async function saveBatchToSheet(batch) {
       console.log('Saving to sheet:', payload);
       const response = await fetch(CHATBOT_WEBHOOK, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(payload)
       });
-      const result = await response.text();
-      console.log('Sheet response:', result);
+      console.log('Sheet POST sent (no-cors):', payload.name);
     } catch(e) {
       console.error('Failed to save to sheet:', place.name, e.message);
     }
