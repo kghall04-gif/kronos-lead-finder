@@ -505,8 +505,8 @@ async function doSearch(page) {
     document.getElementById('btn-export').disabled    = allResults.length === 0;
     document.getElementById('btn-more').disabled      = !hasNext;
     loadStats();
-    // Fire background auto-scrape then auto-save (non-blocking)
-    autoScrapeAllEmails(allResults).then(() => autoSaveToSheet(allResults));
+    // Fire background auto-scrape (saves each lead individually as it completes)
+    autoScrapeAllEmails(allResults);
   } catch(e) {
     showToast(e.message || 'Search failed','#FF3B3B');
     showEmpty('Search failed — check API key or try a different location');
@@ -674,68 +674,65 @@ function updateEmailRow(idx) {
     : `<span class="escrape-dot none"></span><span class="enone">No email found</span>`;
 }
 
-const SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwXmjBo9tAAAWEReoL5BGYtyxx8zXJ9vYWspNGI10pC5OpYENZUYOcfiHSAWHECYSOp/exec';
+const CHATBOT_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwXmjBo9tAAAWEReoL5BGYtyxx8zXJ9vYWspNGI10pC5OpYENZUYOcfiHSAWHECYSOp/exec';
 
 async function autoScrapeAllEmails(results) {
-  const batchSize = 3;
+  for (let i = 0; i < results.length; i++) {
+    const place = results[i];
+    const dot = document.getElementById(`esd-${i}`);
+    if (dot) dot.className = 'escrape-dot scraping';
 
-  for (let i = 0; i < results.length; i += batchSize) {
-    const batch = results.slice(i, i + batchSize);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
-    await Promise.all(batch.map(async (place) => {
-      if (!place.website && !place.name) return;
-      const idx = results.indexOf(place);
-      const dot = document.getElementById(`esd-${idx}`);
-      if (dot) dot.className = 'escrape-dot scraping';
+      const params = new URLSearchParams({ name: place.name || '' });
+      if (place.website) params.append('website', place.website);
+      if (currentLoc) params.append('location', currentLoc);
 
-      try {
-        const params = new URLSearchParams({ name: place.name || '', location: currentLoc || '' });
-        if (place.website) params.append('website', place.website);
-        const d = await apiFetch(`/api/email?${params.toString()}`);
-        const emails = d.emails || [];
-        emailCache[place.place_id] = emails;
-        place.foundEmail = emails[0] || '';
-        if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
-      } catch(e) {
-        emailCache[place.place_id] = [];
-        place.foundEmail = '';
-        if (dot) dot.className = 'escrape-dot none';
-      }
-      updateEmailRow(idx);
-      updateHeaderStats();
-    }));
+      const res = await fetch(`/api/email?${params.toString()}`, { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await res.json();
 
-    if (i + batchSize < results.length) {
-      await new Promise(r => setTimeout(r, 1000));
+      const emails = data.emails || [];
+      emailCache[place.place_id] = emails;
+      place.foundEmail = emails[0] || '';
+      if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
+    } catch(e) {
+      emailCache[place.place_id] = [];
+      place.foundEmail = '';
+      if (dot) dot.className = 'escrape-dot none';
     }
+
+    updateEmailRow(i);
+    updateHeaderStats();
+    await saveOneToSheet(place);
+    await new Promise(r => setTimeout(r, 500));
   }
+
+  showToast(`✓ ${results.length} leads saved to sheet`, '#00E07A');
 }
 
-async function autoSaveToSheet(results) {
-  if (!results.length) return;
-  let saved = 0;
-  for (const place of results) {
-    try {
-      await fetch(SHEET_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:       place.name,
-          industry:   currentIndustry,
-          phone:      place.phone || '',
-          email:      place.foundEmail || '',
-          website:    place.website || '',
-          hasWebsite: place.hasWebsite,
-          rating:     place.rating || '',
-          address:    place.address || '',
-          status:     place.hasWebsite ? 'Has Website - Auto Added' : 'No Website - Review Needed',
-          date:       new Date().toLocaleDateString('en-NZ')
-        })
-      });
-      saved++;
-    } catch(e) {}
-  }
-  if (saved > 0) showToast(`✓ ${saved} leads saved to sheet`, '#00E07A');
+async function saveOneToSheet(place) {
+  try {
+    await fetch(CHATBOT_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:       place.name || '',
+        industry:   currentIndustry || '',
+        phone:      place.phone || '',
+        email:      place.foundEmail || '',
+        website:    place.website || '',
+        hasWebsite: place.hasWebsite,
+        rating:     place.rating || '',
+        address:    place.address || '',
+        status:     place.hasWebsite ? 'Has Website - Auto Added' : 'No Website - Review Needed',
+        date:       new Date().toLocaleDateString('en-NZ')
+      })
+    });
+  } catch(e) {}
+}
 }
 
 async function bulkEmail() {
