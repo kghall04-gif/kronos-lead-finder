@@ -677,27 +677,37 @@ function updateEmailRow(idx) {
 const SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwXmjBo9tAAAWEReoL5BGYtyxx8zXJ9vYWspNGI10pC5OpYENZUYOcfiHSAWHECYSOp/exec';
 
 async function autoScrapeAllEmails(results) {
-  for (let i = 0; i < results.length; i++) {
-    const b = results[i];
-    // Skip if already cached
-    if (emailCache[b.place_id] !== undefined) continue;
-    const dot = document.getElementById(`esd-${i}`);
-    if (dot) dot.className = 'escrape-dot scraping';
-    try {
-      let url = `/api/email?name=${enc(b.name)}&location=${enc(currentLoc)}`;
-      if (b.website) url += `&website=${enc(b.website)}`;
-      const d = await apiFetch(url);
-      const emails = d.emails || [];
-      emailCache[b.place_id] = emails;
-      b.foundEmail = emails[0] || '';
-      if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
-    } catch(e) {
-      emailCache[b.place_id] = [];
-      b.foundEmail = '';
-      if (dot) dot.className = 'escrape-dot none';
+  const batchSize = 3;
+
+  for (let i = 0; i < results.length; i += batchSize) {
+    const batch = results.slice(i, i + batchSize);
+
+    await Promise.all(batch.map(async (place) => {
+      if (!place.website && !place.name) return;
+      const idx = results.indexOf(place);
+      const dot = document.getElementById(`esd-${idx}`);
+      if (dot) dot.className = 'escrape-dot scraping';
+
+      try {
+        const params = new URLSearchParams({ name: place.name || '', location: currentLoc || '' });
+        if (place.website) params.append('website', place.website);
+        const d = await apiFetch(`/api/email?${params.toString()}`);
+        const emails = d.emails || [];
+        emailCache[place.place_id] = emails;
+        place.foundEmail = emails[0] || '';
+        if (dot) dot.className = emails.length > 0 ? 'escrape-dot found' : 'escrape-dot none';
+      } catch(e) {
+        emailCache[place.place_id] = [];
+        place.foundEmail = '';
+        if (dot) dot.className = 'escrape-dot none';
+      }
+      updateEmailRow(idx);
+      updateHeaderStats();
+    }));
+
+    if (i + batchSize < results.length) {
+      await new Promise(r => setTimeout(r, 1000));
     }
-    updateEmailRow(i);
-    updateHeaderStats();
   }
 }
 
